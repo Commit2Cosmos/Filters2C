@@ -22,7 +22,7 @@ namespace {
         if (out_start > out_end) std::swap(out_start, out_end);
     }
 
-    
+
     // CUSTOM MEDIAN ALGORITHM: Quickselect
     // O(N) average case for finding a median.
     
