@@ -1,14 +1,33 @@
 #include "Blur.h"
-# include "Image.h"
-#include <stdexcept>
+#include "Image.h"
 
+#include <stdexcept>
+#include <algorithm>
+#include <cmath>
+#include <vector>
 // Helper function to check that kernel size is valid (odd and greater than 1)
 bool Blur::isValidKernelSize(int kernelSize) const
 {
     // Kernel size must be odd and greater than 1
     return (kernelSize > 1) && (kernelSize % 2 == 1);
 }
+unsigned char Blur::getMedianValue(const Image& img, int centerX, int centerY, int channel, int kernelSize) const
+{
+    const int radius = kernelSize / 2;
+    std::vector<unsigned char> values;
+    values.reserve(kernelSize * kernelSize);
 
+    for (int y = centerY - radius; y <= centerY + radius; ++y) {
+        for (int x = centerX - radius; x <= centerX + radius; ++x) {
+            values.push_back(img.getPixel(x, y, channel));
+        }
+    }
+
+    std::sort(values.begin(), values.end());
+    return values[values.size() / 2];
+}
+
+// Apply Blur Algorithms
 void Blur::applyBoxBlur(Image& img, int kernelSize)
 {
     // Use helper function to validate kernel size
@@ -114,18 +133,28 @@ void Blur::applyGaussianBlur(Image& img, int kernelSize, double sigma)
 void Blur::applyMedianBlur(Image& img, int kernelSize)
 {
     // Validate kernel size
+    if (!isValidKernelSize(kernelSize)) {
+        throw std::invalid_argument("Kernel size must be odd and greater than 1");
+    }
 
     // Get image dimensions
+    const int width = img.getWidth();
+    const int height = img.getHeight();
+    const int channels = img.getChannels();
 
     // Copy original image
+    Image original = img;
 
     // Loop through pixels
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            for (int channel = 0; channel < channels; ++channel) {
+                // Collect neighbouring pixel values, sort them, and select the median
+                const unsigned char median = getMedianValue(original, x, y, channel, kernelSize);
 
-        // Collect neighbouring pixel values
-
-        // Sort the values
-
-        // Select median
-
-        // Write median pixel value
+                // Write median pixel value
+                img.setPixel(x, y, channel, median);
+            }
+        }
+    }
 }
