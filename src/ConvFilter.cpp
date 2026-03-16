@@ -54,14 +54,34 @@ void ConvFilter::apply(Image& image) {
     }
 
     // Write back all channels
-    for (int c = 0; c < ch; ++c) {
-        for (int y = 0; y < h; ++y) {
-            for (int x = 0; x < w; ++x) {
-                float val = results[c][y * w + x];
-                val = std::max(0.0f, std::min(255.0f, val));
-                image.setPixel(x, y, c, static_cast<unsigned char>(val));
-            }
-        }
+    // Filters that set normalise_ = true (e.g. edge detectors) have
+    // their output scaled to [0, 255] so large-weight kernels like
+    // Scharr don't saturate to all-white.  Other filters keep the
+    // existing clamp behaviour.
+    if (normalise_) {
+        // Find the global maximum across all channels
+        float maxVal = 0.0f;
+        for (int c = 0; c < ch; ++c)
+            for (auto v : results[c])
+                if (v > maxVal) maxVal = v;
+
+        float scale = (maxVal > 0.0f) ? 255.0f / maxVal : 1.0f;
+
+        for (int c = 0; c < ch; ++c)
+            for (int y = 0; y < h; ++y)
+                for (int x = 0; x < w; ++x) {
+                    float val = results[c][y * w + x] * scale;
+                    image.setPixel(x, y, c,
+                        static_cast<unsigned char>(std::min(255.0f, val)));
+                }
+    } else {
+        for (int c = 0; c < ch; ++c)
+            for (int y = 0; y < h; ++y)
+                for (int x = 0; x < w; ++x) {
+                    float val = results[c][y * w + x];
+                    val = std::max(0.0f, std::min(255.0f, val));
+                    image.setPixel(x, y, c, static_cast<unsigned char>(val));
+                }
     }
 }
 

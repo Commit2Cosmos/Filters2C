@@ -10,4 +10,6 @@ ScharrFilter::ScharrFilter()
         {{ -3, -10, -3 },
          {  0,   0,  0 },
          {  3,  10,  3 }})
-{}
+{
+    normalise_ = true;
+}

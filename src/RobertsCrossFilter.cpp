@@ -8,4 +8,6 @@ RobertsCrossFilter::RobertsCrossFilter()
         // G2
         {{  0, 1 },
          { -1, 0 }})
-{}
+{
+    normalise_ = true;
+}

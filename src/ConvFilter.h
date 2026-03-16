@@ -25,6 +25,7 @@ protected:
         const std::vector<float>& respY) const;
 
     std::vector<Kernel> kernels_;
+    bool normalise_ = false;
 
 };
 
