@@ -20,6 +20,8 @@ public:
 private:
     // Helper function to check kernel size is valid
     bool isValidKernelSize(int kernelSize) const;
+    // Returns the median value inside the kernel window for one channel.
+    unsigned char getMedianValue(const Image& img, int centerX, int centerY, int channel, int kernelSize) const;
 };
 
 #endif
