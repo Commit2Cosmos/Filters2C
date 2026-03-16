@@ -8,34 +8,39 @@ void Threshold::apply(Image& image)
     int height = image.getHeight();
     int channels = image.getChannels();
 
-    // Threshold in HSV/HSL only makes sense for RGB images
-    if (channels < 3)
-        return;
+    const int thresholdInt = 127;
 
-    // Convert image to HSL
-    std::vector<float> hslData = image.toHSL();
-
-    // Coursework slide says threshold = 127
-    // Since L is stored in [0,1], convert 127 to [0,1]
-    const float threshold = 127.0f / 255.0f;
-
-    for (int i = 0; i < width * height; ++i)
+    // Case 1: grayscale image
+    if (channels == 1)
     {
-        int idx = i * 3;
-
-        // hslData[idx]     = H
-        // hslData[idx + 1] = S
-        // hslData[idx + 2] = L
-        float& h = hslData[idx];
-        float& s = hslData[idx + 1];
-        float& l = hslData[idx + 2];
-
-        if (l > threshold)
-            l = 1.0f;
-        else
-            l = 0.0f;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int pixel = image.getPixel(x, y, 0);
+                pixel = (pixel > thresholdInt) ? 255 : 0;
+                image.setPixel(x, y, 0, pixel);
+            }
+        }
+        return;
     }
 
-    // Convert modified HSL back to RGB
-    image.updateFromHSL(hslData);
+    // Case 2: RGB image
+    if (channels >= 3)
+    {
+        std::vector<float> hslData = image.toHSL();
+        const float threshold = 127.0f / 255.0f;
+
+        for (int i = 0; i < width * height; i++)
+        {
+            int idx = i * 3;
+            float& s = hslData[idx + 1];
+            float& l = hslData[idx + 2];
+
+            l = (l > threshold) ? 1.0f : 0.0f;
+            s = 0.0f; // remove colour so output becomes black/white
+        }
+
+        image.updateFromHSL(hslData);
+    }
 }
