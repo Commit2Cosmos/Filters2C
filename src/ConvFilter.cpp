@@ -12,14 +12,19 @@
  * @brief Single-kernel constructor for filters like Sharpen and Emboss.
  * @param kernel The 2D convolution kernel to apply.
  */
-ConvFilter::ConvFilter(Kernel kernel) {}
+ConvFilter::ConvFilter(Kernel kernel) {
+    kernels_.push_back(std::move(kernel));
+}
 
 /**
  * @brief Dual-kernel constructor for gradient filters (Sobel, Prewitt, etc.).
  * @param kernelX Kernel for detecting horizontal edges (Gx).
  * @param kernelY Kernel for detecting vertical edges (Gy).
  */
-ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) {}
+ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) {
+    kernels_.push_back(std::move(kernelX));
+    kernels_.push_back(std::move(kernelY));
+}
 
 
 // ── apply ─────────────────────────────────────────────────────────────────────
@@ -35,7 +40,36 @@ ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) {}
  *
  * @param image The image to filter, modified in-place.
  */
-void ConvFilter::apply(Image& image) {}
+void ConvFilter::apply(Image& image) {
+    const int w  = image.getWidth();
+    const int h  = image.getHeight();
+    const int ch = image.getChannels();
+
+    // Compute all channels first, then write back
+    // (prevents earlier channel writes from corrupting later channel reads)
+    std::vector<std::vector<float>> results(ch);
+
+    for (int c = 0; c < ch; ++c) {
+        if (kernels_.size() == 1) {
+            results[c] = convolveChannel(image, c, kernels_[0]);
+        } else {
+            std::vector<float> respX = convolveChannel(image, c, kernels_[0]);
+            std::vector<float> respY = convolveChannel(image, c, kernels_[1]);
+            results[c] = combineResponses(respX, respY);
+        }
+    }
+
+    // Write back all channels
+    for (int c = 0; c < ch; ++c) {
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                float val = results[c][y * w + x];
+                val = std::max(0.0f, std::min(255.0f, val));
+                image.setPixel(x, y, c, static_cast<unsigned char>(val));
+            }
+        }
+    }
+}
 
 
 // ── convolveChannel ───────────────────────────────────────────────────────────
@@ -54,7 +88,33 @@ void ConvFilter::apply(Image& image) {}
  * @return       Flat vector of float responses, size = width * height.
  */
 std::vector<float> ConvFilter::convolveChannel(
-    const Image& image, int ch, const Kernel& kernel) const {}
+    const Image& image, int ch, const Kernel& kernel) const {
+    const int w = image.getWidth();
+    const int h = image.getHeight();
+    const int kh = static_cast<int>(kernel.size());
+    const int kw = static_cast<int>(kernel[0].size());
+    const int halfH = kh / 2;
+    const int halfW = kw / 2;
+
+    std::vector<float> result(w * h, 0.0f);
+
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            float sum = 0.0f;
+            for (int ky = 0; ky < kh; ++ky) {
+                for (int kx = 0; kx < kw; ++kx) {
+                    int srcX = x + kx - halfW;
+                    int srcY = y + ky - halfH;
+                    // getPixel handles extend (clamp) padding for out-of-bounds
+                    float pixel = static_cast<float>(image.getPixel(srcX, srcY, ch));
+                    sum += pixel * kernel[ky][kx];
+                }
+            }
+            result[y * w + x] = sum;
+        }
+    }
+    return result;
+}
 
 
 // ── combineResponses ──────────────────────────────────────────────────────────
@@ -71,4 +131,10 @@ std::vector<float> ConvFilter::convolveChannel(
  */
 std::vector<float> ConvFilter::combineResponses(
     const std::vector<float>& respX,
-    const std::vector<float>& respY) const {}
+    const std::vector<float>& respY) const {
+    std::vector<float> result(respX.size());
+    for (size_t i = 0; i < respX.size(); ++i) {
+        result[i] = std::sqrt(respX[i] * respX[i] + respY[i] * respY[i]);
+    }
+    return result;
+}
