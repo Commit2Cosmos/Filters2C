@@ -181,9 +181,11 @@ void Image::updateFromHSV(const std::vector<float>& hsvData) {
         else if (h >= 300 && h < 360) { r = c; g = 0; b = x_val; }
 
         int idx = i * channels;
-        data[idx] = static_cast<unsigned char>((r + m) * 255.0f);
-        data[idx + 1] = static_cast<unsigned char>((g + m) * 255.0f);
-        data[idx + 2] = static_cast<unsigned char>((b + m) * 255.0f);
+        // Add m, scale back to 255, and safely cast to unsigned char using std::clamp 
+        // to prevent unexpected floating-point overflows or underflows.
+        data[idx] = static_cast<unsigned char>(std::clamp((r + m) * 255.0f, 0.0f, 255.0f));
+        data[idx + 1] = static_cast<unsigned char>(std::clamp((g + m) * 255.0f, 0.0f, 255.0f));
+        data[idx + 2] = static_cast<unsigned char>(std::clamp((b + m) * 255.0f, 0.0f, 255.0f));
         // Alpha channel remains untouched if it exists (channels == 4)
     }
 }
