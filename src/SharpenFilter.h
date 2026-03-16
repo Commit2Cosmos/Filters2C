@@ -8,7 +8,7 @@
  * @brief Enhances edge contrast to sharpen the image.
  *
  * Single-kernel filter. Uses a Laplacian-based kernel that amplifies the
- * centre pixel relative to its neighbours. No overrides needed.
+ * centre pixel relative to its neighbours.
  */
 class SharpenFilter : public ConvFilter {
 public:

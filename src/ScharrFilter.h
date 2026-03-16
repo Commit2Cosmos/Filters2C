@@ -8,7 +8,7 @@
  * @brief Applies the Scharr edge detection operator.
  *
  * A refined Sobel variant with larger weights (3, 10) for better rotational
- * symmetry. Produces stronger gradient responses than Sobel or Prewitt.
+ * symmetry.
  */
 class ScharrFilter : public ConvFilter {
 public:

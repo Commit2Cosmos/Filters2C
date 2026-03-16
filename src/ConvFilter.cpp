@@ -12,19 +12,14 @@
  * @brief Single-kernel constructor for filters like Sharpen and Emboss.
  * @param kernel The 2D convolution kernel to apply.
  */
-ConvFilter::ConvFilter(Kernel kernel) {
-    kernels_.push_back(std::move(kernel));
-}
+ConvFilter::ConvFilter(Kernel kernel) : kernels_({std::move(kernel)}) {}
 
 /**
- * @brief Dual-kernel constructor for gradient filters (Sobel, Prewitt, etc.).
+ * @brief Dual-kernel constructor for gradient filters.
  * @param kernelX Kernel for detecting horizontal edges (Gx).
  * @param kernelY Kernel for detecting vertical edges (Gy).
  */
-ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) {
-    kernels_.push_back(std::move(kernelX));
-    kernels_.push_back(std::move(kernelY));
-}
+ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) : kernels_({std::move(kernelX), std::move(kernelY)}) {}
 
 
 // ── apply ─────────────────────────────────────────────────────────────────────
@@ -45,12 +40,11 @@ void ConvFilter::apply(Image& image) {
     const int h  = image.getHeight();
     const int ch = image.getChannels();
 
-    // Compute all channels first, then write back
-    // (prevents earlier channel writes from corrupting later channel reads)
+    // Compute all channels
     std::vector<std::vector<float>> results(ch);
 
     for (int c = 0; c < ch; ++c) {
-        if (kernels_.size() == 1) {
+        if (kernels_.size() == 1u) {
             results[c] = convolveChannel(image, c, kernels_[0]);
         } else {
             std::vector<float> respX = convolveChannel(image, c, kernels_[0]);
@@ -123,7 +117,6 @@ std::vector<float> ConvFilter::convolveChannel(
  * @brief Combines Gx and Gy response maps into a single output.
  *
  * Default implementation computes gradient magnitude: sqrt(Gx² + Gy²).
- * Subclasses may override — e.g. EmbossFilter shifts by +128 instead.
  *
  * @param respX Float response map from the Gx kernel.
  * @param respY Float response map from the Gy kernel.
