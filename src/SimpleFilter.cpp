@@ -2,9 +2,9 @@
 
 void SimpleFilter::apply(Image& image)
 {
-    int width = image.width;
-    int height = image.height;
-    int channels = image.channels;
+    int width = image.getWidth();
+    int height = image.getHeight();
+    int channels = image.getChannels();
 
     // Only process RGB images
     if (channels < 3) return;
