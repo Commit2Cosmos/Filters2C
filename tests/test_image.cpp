@@ -1,9 +1,16 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image.h"
+#include "stb_image_write.h"
+
 #include <iostream>
 #include <cassert>
-#include <cmath>
 #include "Image.h"
-#include "Volume.h"
-#include "Slice.h"
+
+
+bool isClose(float a, float b, float tolerance = 0.01f) {
+    return std::abs(a - b) < tolerance;
+}
 
 // --- Image Class Tests ---
 void testImageBasicAndExtend() {
@@ -54,11 +61,63 @@ void testImageGrayscale() {
     std::cout << "Image Grayscale Test Passed!" << std::endl;
 }
 
+void testHSVConversion() {
+    Image img(1, 1, 3); // 1x1 RGB image
+    
+    // Test Case: Pure Red
+    // Expected HSV for Red: Hue = 0.0, Saturation = 1.0, Value = 1.0
+    img.setPixel(0, 0, 0, 255); // R
+    img.setPixel(0, 0, 1, 0);   // G
+    img.setPixel(0, 0, 2, 0);   // B
+
+    std::vector<float> hsv = img.toHSV();
+    
+    // Check float math
+    assert(isClose(hsv[0], 0.0f));   // H
+    assert(isClose(hsv[1], 1.0f));   // S
+    assert(isClose(hsv[2], 1.0f));   // V
+
+    // Test Roundtrip: HSV back to RGB
+    img.updateFromHSV(hsv);
+    assert(img.getPixel(0, 0, 0) == 255);
+    assert(img.getPixel(0, 0, 1) == 0);
+    assert(img.getPixel(0, 0, 2) == 0);
+
+    std::cout << "Image HSV Conversion Test Passed!" << std::endl;
+}
+
+void testHSLConversion() {
+    Image img(1, 1, 3); // 1x1 RGB image
+    
+    // Test Case: Pure Green
+    // Expected HSL for Green: Hue = 120.0, Saturation = 1.0, Lightness = 0.5
+    img.setPixel(0, 0, 0, 0);   // R
+    img.setPixel(0, 0, 1, 255); // G
+    img.setPixel(0, 0, 2, 0);   // B
+
+    std::vector<float> hsl = img.toHSL();
+    
+    // Check float math 
+    assert(isClose(hsl[0], 120.0f)); // H
+    assert(isClose(hsl[1], 1.0f));   // S
+    assert(isClose(hsl[2], 0.5f));   // L
+
+    // Test Roundtrip: HSL back to RGB
+    img.updateFromHSL(hsl);
+    assert(img.getPixel(0, 0, 0) == 0);
+    assert(img.getPixel(0, 0, 1) == 255);
+    assert(img.getPixel(0, 0, 2) == 0);
+
+    std::cout << "Image HSL Conversion Test Passed!" << std::endl;
+}
+
 int main() {
     std::cout << "Running Image Class Tests..." << std::endl;
     
     testImageBasicAndExtend();
     testImageGrayscale();
+    testHSVConversion();
+    testHSLConversion();
 
     std::cout << "All Image Class Tests Passed Successfully!" << std::endl;
     return 0;
