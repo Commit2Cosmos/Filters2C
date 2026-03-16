@@ -12,28 +12,30 @@ void Threshold::apply(Image& image)
     if (channels < 3)
         return;
 
-    // Convert image to HSV
-    std::vector<float> hsvData = image.toHSV();
+    // Convert image to HSL
+    std::vector<float> hslData = image.toHSL();
 
     // Coursework slide says threshold = 127
-    // Since V is stored in [0,1], convert 127 to [0,1]
+    // Since L is stored in [0,1], convert 127 to [0,1]
     const float threshold = 127.0f / 255.0f;
 
     for (int i = 0; i < width * height; ++i)
     {
         int idx = i * 3;
 
-        // hsvData[idx]     = H
-        // hsvData[idx + 1] = S
-        // hsvData[idx + 2] = V
-        float& v = hsvData[idx + 2];
+        // hslData[idx]     = H
+        // hslData[idx + 1] = S
+        // hslData[idx + 2] = L
+        float& h = hslData[idx];
+        float& s = hslData[idx + 1];
+        float& l = hslData[idx + 2];
 
-        if (v > threshold)
-            v = 1.0f;
+        if (l > threshold)
+            l = 1.0f;
         else
-            v = 0.0f;
+            l = 0.0f;
     }
 
-    // Convert modified HSV back to RGB
-    image.updateFromHSV(hsvData);
+    // Convert modified HSL back to RGB
+    image.updateFromHSL(hslData);
 }
