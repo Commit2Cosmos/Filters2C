@@ -73,4 +73,5 @@ Image Slice::extractYZ(const Volume& volume, int x_coord_1_based){
             }
         }
     }
+    return result;
 }
