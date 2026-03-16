@@ -2,6 +2,7 @@
 #define GRAYSCALE_H
 
 #include "Filter.h"
+#include "Image.h"
 
 class GrayScale : public Filter
 {
