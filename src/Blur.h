@@ -20,6 +20,10 @@ public:
 private:
     // Helper function to check kernel size is valid
     bool isValidKernelSize(int kernelSize) const;
+
+    // Helper function to create Gaussian kernel
+    std::vector<std::vector<double>> createGaussianKernel(int kernelSize, double sigma);
+    
     // Returns the median value inside the kernel window for one channel.
     unsigned char getMedianValue(const Image& img, int centerX, int centerY, int channel, int kernelSize) const;
 };
