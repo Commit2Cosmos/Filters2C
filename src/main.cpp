@@ -1,12 +1,3 @@
-// A minimal example file showing how to include the stb image headers,
-// and how to read and write image files using these headers.
-//
-// Compilation with (e.g.): 
-//    g++-15 main.cpp -o main [MacOS]
-//    g++ main.cpp -o main [Ubuntu/WSL]
-//
-// Minimal example written by T.M. Davison (2023-26) [CHANGE THIS!]
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -14,34 +5,98 @@
 
 #include <iostream>
 
-// Uncomment these as you start to implement the different classes
-// #include "Image.h"
-// #include "Filter.h"
-// #include "Volume.h"
-// #include "Projection.h"
-// #include "Slice.h"
+#include "Image.h"
+#include "GrayScale.h"
+#include "Brightness.h"
+#include "Threshold.h"
+#include "HistogramEqualisation.h"
+#include "SaltAndPepper.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
+    Image img;
 
-    /* 
-    You need to change all of the code in this main function; it is just a placeholder
-    to demonstrate how to read and write images with the stbi header files.
-    */
-    int w, h, c;
-    unsigned char* data;
+    if (!img.load("Images/gracehopper.png")) {
+        std::cerr << "Failed to load image." << std::endl;
+        return 1;
+    }
 
-    // Read in image file
-    data = stbi_load("../Images/small.png", &w, &h, &c, 0);
+    std::cout << "Image loaded with size "
+              << img.getWidth() << " x "
+              << img.getHeight() << " with "
+              << img.getChannels() << " channel(s)."
+              << std::endl;
 
-    // Print image size to screen
-    std::cout << "Image loaded with size " << w << " x " << h << " with " << c << " channel(s)." << std::endl; 
+    // ---------------------------
+    // 1. Greyscale
+    // ---------------------------
+    {
+        Image grayImg = img;
+        GrayScale grayFilter;
+        grayFilter.apply(grayImg);
 
-    // Save image to new filename
-    int success = stbi_write_png("output.png", w, h, c, data, 0);
+        if (!grayImg.save("output_grayscale.png")) {
+            std::cerr << "Failed to save grayscale image." << std::endl;
+            return 1;
+        }
+    }
 
-    // Deallocate memory
-    stbi_image_free(data);
+    // ---------------------------
+    // 2. Brightness
+    // ---------------------------
+    {
+        Image brightImg = img;
+        Brightness brightFilter(50);   // increase brightness by 50
+        brightFilter.apply(brightImg);
 
+        if (!brightImg.save("output_brightness.png")) {
+            std::cerr << "Failed to save brightness image." << std::endl;
+            return 1;
+        }
+    }
+
+    // ---------------------------
+    // 3. Threshold
+    // ---------------------------
+    {
+        Image threshImg = img;
+        Threshold thresholdFilter;
+        thresholdFilter.apply(threshImg);
+
+        if (!threshImg.save("output_threshold.png")) {
+            std::cerr << "Failed to save threshold image." << std::endl;
+            return 1;
+        }
+    }
+
+    // ---------------------------
+    // 4. Histogram Equalisation
+    // ---------------------------
+    {
+        Image histImg = img;
+        HistogramEqualisation histFilter;
+        histFilter.apply(histImg);
+
+        if (!histImg.save("output_histogram_equalisation.png")) {
+            std::cerr << "Failed to save histogram equalised image." << std::endl;
+            return 1;
+        }
+    }
+
+    // ---------------------------
+    // 5. Salt and Pepper Noise
+    // ---------------------------
+    {
+        Image noiseImg = img;
+        SaltAndPepper noiseFilter(0.10);   // 10% noise
+        noiseFilter.apply(noiseImg);
+
+        if (!noiseImg.save("output_salt_and_pepper.png")) {
+            std::cerr << "Failed to save salt and pepper image." << std::endl;
+            return 1;
+        }
+    }
+
+    std::cout << "All filters applied successfully." << std::endl;
     return 0;
-
 }
