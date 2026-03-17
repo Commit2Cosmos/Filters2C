@@ -46,7 +46,6 @@ void testLoadAndSave() {
     assert(img.getHeight() == imgLoaded.getHeight());
     assert(img.getChannels() == imgLoaded.getChannels());
 
-    std::cout << "Image Load & Save Test Passed!" << std::endl;
 }
 
 
@@ -78,7 +77,6 @@ void testImageBasicAndExtend() {
     img.setPixel(2, 0, 0, 50);
     assert(img.getPixel(10, 0, 0) == 50);
 
-    std::cout << "Image Basic & Extend Tests Passed!" << std::endl;
 }
 
 void testImageGrayscale() {
@@ -96,7 +94,6 @@ void testImageGrayscale() {
     assert(img.getChannels() == 1); // Should now be 1 channel 
     assert(img.getPixel(0, 0, 0) == 142); // Check math
 
-    std::cout << "Image Grayscale Test Passed!" << std::endl;
 }
 
 void testHSVConversion() {
@@ -121,7 +118,6 @@ void testHSVConversion() {
     assert(img.getPixel(0, 0, 1) == 0);
     assert(img.getPixel(0, 0, 2) == 0);
 
-    std::cout << "Image HSV Conversion Test Passed!" << std::endl;
 }
 
 void testHSLConversion() {
@@ -146,7 +142,6 @@ void testHSLConversion() {
     assert(img.getPixel(0, 0, 1) == 255);
     assert(img.getPixel(0, 0, 2) == 0);
 
-    std::cout << "Image HSL Conversion Test Passed!" << std::endl;
 }
 
 int main() {

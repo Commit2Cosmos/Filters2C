@@ -49,7 +49,6 @@ void testMaxIP() {
     assert(result.getPixel(1, 0, 0) == 25);
     assert(result.getPixel(0, 1, 0) == 50);
     assert(result.getPixel(1, 1, 0) == 60);
-    std::cout << "applyMaxIP Test Passed!" << std::endl;
 }
 
 void testMinIP() {
@@ -65,7 +64,6 @@ void testMinIP() {
     assert(result.getPixel(1, 0, 0) == 5);
     assert(result.getPixel(0, 1, 0) == 30);
     assert(result.getPixel(1, 1, 0) == 20);
-    std::cout << "applyMinIP Test Passed!" << std::endl;
 }
 
 void testMeanIP() {
@@ -81,7 +79,6 @@ void testMeanIP() {
     assert(result.getPixel(1, 0, 0) == 16);
     assert(result.getPixel(0, 1, 0) == 38);
     assert(result.getPixel(1, 1, 0) == 40);
-    std::cout << "applyMeanIP Test Passed!" << std::endl;
 }
 
 void testMedianIP() {
@@ -97,7 +94,6 @@ void testMedianIP() {
     assert(result.getPixel(1, 0, 0) == 20);
     assert(result.getPixel(0, 1, 0) == 35);
     assert(result.getPixel(1, 1, 0) == 40);
-    std::cout << "applyMedianIP Test Passed!" << std::endl;
 }
 
 int main() {
