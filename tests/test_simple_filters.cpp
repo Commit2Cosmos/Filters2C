@@ -5,6 +5,8 @@
 #include "GrayScale.h"
 #include "Brightness.h"
 #include "Threshold.h"
+#include "HistogramEqualisation.h"
+#include "SaltAndPepper.h"
 
 bool testGreyscale()
 {
@@ -79,6 +81,33 @@ bool testBrightness()
     return ok;
 }
 
+bool testHistogramEqualisation()
+{
+    // Grayscale image with 4 pixels: [50, 50, 200, 200]
+    Image img(4, 1, 1);
+
+    img.setPixel(0, 0, 0, 50);
+    img.setPixel(1, 0, 0, 50);
+    img.setPixel(2, 0, 0, 200);
+    img.setPixel(3, 0, 0, 200);
+
+    HistogramEqualisation filter;
+    filter.apply(img);
+
+    bool ok = true;
+
+    // Expected mapping:
+    // 50  -> 0
+    // 200 -> 255
+    ok &= (img.getPixel(0, 0, 0) == 0);
+    ok &= (img.getPixel(1, 0, 0) == 0);
+    ok &= (img.getPixel(2, 0, 0) == 255);
+    ok &= (img.getPixel(3, 0, 0) == 255);
+
+    return ok;
+}
+
+
 bool testThreshold()
 {
     // Use a grayscale image to make the expected output unambiguous
@@ -103,10 +132,41 @@ bool testThreshold()
     return ok;
 }
 
+bool testSaltAndPepper()
+{
+    Image img(2, 1, 3);
+
+    // Pixel 0 = (100, 120, 140)
+    img.setPixel(0, 0, 0, 100);
+    img.setPixel(0, 0, 1, 120);
+    img.setPixel(0, 0, 2, 140);
+
+    // Pixel 1 = (200, 210, 220)
+    img.setPixel(1, 0, 0, 200);
+    img.setPixel(1, 0, 1, 210);
+    img.setPixel(1, 0, 2, 220);
+
+    // With zero noise ratio, the image should remain unchanged
+    SaltAndPepper filter(0.0);
+    filter.apply(img);
+
+    bool ok = true;
+
+    ok &= (img.getPixel(0, 0, 0) == 100);
+    ok &= (img.getPixel(0, 0, 1) == 120);
+    ok &= (img.getPixel(0, 0, 2) == 140);
+
+    ok &= (img.getPixel(1, 0, 0) == 200);
+    ok &= (img.getPixel(1, 0, 1) == 210);
+    ok &= (img.getPixel(1, 0, 2) == 220);
+
+    return ok;
+}
+
 int main()
 {
     int passed = 0;
-    int total = 3;
+    int total = 5;
 
     if (testGreyscale()) {
         std::cout << "Greyscale test passed.\n";
@@ -127,6 +187,20 @@ int main()
         passed++;
     } else {
         std::cout << "Threshold test failed.\n";
+    }
+
+    if (testHistogramEqualisation()) {
+        std::cout << "Histogram equalisation test passed.\n";
+        passed++;
+    } else {
+        std::cout << "Histogram equalisation test failed.\n";
+    }
+
+    if (testSaltAndPepper()) {
+        std::cout << "Salt and pepper test passed.\n";
+        passed++;
+    } else {
+        std::cout << "Salt and pepper test failed.\n";
     }
 
     std::cout << passed << " / " << total << " tests passed.\n";
