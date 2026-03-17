@@ -1,3 +1,8 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image.h"
+#include "stb_image_write.h"
+
 #include <iostream>
 #include <cassert>
 
@@ -27,7 +32,6 @@ void testBoxBlur() {
     // For the center pixel (1,1), it should be (8*100 + 0) / 9 = ~88
     assert(img.getPixel(1, 1, 0) == 88);
 
-    std::cout << "Box Blur Test Passed!" << std::endl;
 }
 
 void testGaussianBlur() {
@@ -51,7 +55,6 @@ void testGaussianBlur() {
     unsigned char centerValue = img.getPixel(1, 1, 0);
     assert(centerValue < 88);
 
-    std::cout << "Gaussian Blur Test Passed!" << std::endl;
 }
 
 void testMedianBlur() {
@@ -74,16 +77,52 @@ void testMedianBlur() {
     // The center pixel should become the median of its neighbors, which is 100
     assert(img.getPixel(1, 1, 0) == 100);
 
-    std::cout << "Median Blur Test Passed!" << std::endl;
+}
+
+// Loads an image from the repo, applies filters,
+// and saves outputs for visual inspection.
+// --------------------------------------------------
+void testBlurOnImage() {
+    std::cout << "\nRunning Blur Filters on Image..." << std::endl;
+
+    // Replace this path with the actual image path in your repository
+    std::string inputPath = "Images/gracehopper.png";
+
+    // Load original image
+    Image original(inputPath);
+
+    Blur blur;
+
+    // Box blur test
+    {
+        Image img = original; // start from original each time
+        blur.applyBoxBlur(img, 3);
+        img.save("boxblur_gracehopper.png");
+    }
+
+    // Gaussian blur test
+    {
+        Image img = original;
+        blur.applyGaussianBlur(img, 5, 2.0);
+        img.save("gaussianblur_gracehopper.png");
+    }
+
+    // Median blur test
+    {
+        Image img = original;
+        blur.applyMedianBlur(img, 3);
+        img.save("medianblur_gracehopper.png");
+    }
+
 }
 
 int main() {
-    std::cout << "Running Blur Class Tests..." << std::endl;
+    std::cout << "Running Blur Class Tests...";
 
     testBoxBlur();
     testGaussianBlur();
     testMedianBlur();
+    testBlurOnImage();
 
-    std::cout << "All Blur Tests Passed!" << std::endl;
     return 0;
 }

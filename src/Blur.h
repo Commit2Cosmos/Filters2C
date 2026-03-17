@@ -2,6 +2,7 @@
 #define BLUR_H
 
 #include "Filter.h"
+#include <vector>
 
 
 // Single blur class containing all blur methods
