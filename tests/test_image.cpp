@@ -12,6 +12,44 @@ bool isClose(float a, float b, float tolerance = 0.01f) {
     return std::abs(a - b) < tolerance;
 }
 
+
+void testLoadAndSave() {
+    Image img;
+    
+    std::string inputPath = "Images/bourton.png";
+    std::string outputPath = "image_save_test_output.png";
+
+    // 1. Test Loading
+    bool loaded = img.load(inputPath);
+    if (!loaded) {
+        std::cerr << "\n[WARNING]: Could not load " << inputPath 
+                  << ".\nEnsure you have a dummy image there, and check your terminal's current working directory!" << std::endl;
+        return; // Skip the rest of the test so it doesn't crash
+    }
+    
+    // Assert that the image actually loaded data
+    assert(img.getWidth() > 0);
+    assert(img.getHeight() > 0);
+    assert(img.getChannels() > 0);
+
+    // 2. Test Saving
+    bool saved = img.save(outputPath);
+    assert(saved == true);
+
+    // 3. Verify the roundtrip: Load the newly saved file into a second Image object
+    Image imgLoaded;
+    bool loadedAgain = imgLoaded.load(outputPath);
+    assert(loadedAgain == true);
+    
+    // The dimensions and channels of the saved file should perfectly match the original
+    assert(img.getWidth() == imgLoaded.getWidth());
+    assert(img.getHeight() == imgLoaded.getHeight());
+    assert(img.getChannels() == imgLoaded.getChannels());
+
+    std::cout << "Image Load & Save Test Passed!" << std::endl;
+}
+
+
 // --- Image Class Tests ---
 void testImageBasicAndExtend() {
     // Create a 3x3 RGB Image
@@ -114,11 +152,11 @@ void testHSLConversion() {
 int main() {
     std::cout << "Running Image Class Tests..." << std::endl;
     
+    testLoadAndSave();
     testImageBasicAndExtend();
     testImageGrayscale();
     testHSVConversion();
     testHSLConversion();
 
-    std::cout << "All Image Class Tests Passed Successfully!" << std::endl;
     return 0;
 }

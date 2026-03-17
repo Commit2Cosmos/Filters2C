@@ -106,6 +106,5 @@ int main() {
     testMinIP();
     testMeanIP();
     testMedianIP();
-    std::cout << "All Projection Tests Passed Successfully!" << std::endl;
     return 0;
 }

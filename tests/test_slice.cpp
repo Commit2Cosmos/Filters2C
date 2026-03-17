@@ -63,6 +63,5 @@ int main() {
     
     testSliceXZ();
 
-    std::cout << "All Slice Class Tests Passed Successfully!" << std::endl;
     return 0;
 }
