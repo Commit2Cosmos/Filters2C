@@ -7,8 +7,9 @@
 #include <cassert>
 
 #include "Image.h"
-#include "Blur.h"
-#include "Filter.h"
+#include "BoxBlurFilter.h"
+#include "GaussianBlurFilter.h"
+#include "MedianBlurFilter.h"
 
 // Numerical test for blur function
 void testBoxBlur() {
@@ -24,8 +25,8 @@ void testBoxBlur() {
         }
     }
 
-    Blur blur;
-    blur.applyBoxBlur(img, 3);
+    BoxBlurFilter blur(3);
+    blur.apply(img);
 
     // Expected result after box blur with kernel size 3:
     // Each pixel should be the average of its neighbors
@@ -47,8 +48,8 @@ void testGaussianBlur() {
         }
     }
 
-    Blur blur;
-    blur.applyGaussianBlur(img, 3);
+    GaussianBlurFilter blur(3);
+    blur.apply(img);
 
     // Expected result after Gaussian blur with kernel size 3 and sigma 2:
     // The center pixel should be blurred but less than the box blur value of 88
@@ -70,8 +71,8 @@ void testMedianBlur() {
         }
     }
 
-    Blur blur;
-    blur.applyMedianBlur(img, 3);
+    MedianBlurFilter blur(3);
+    blur.apply(img);
 
     // Expected result after median blur with kernel size 3:
     // The center pixel should become the median of its neighbors, which is 100
@@ -91,26 +92,27 @@ void testBlurOnImage() {
     // Load original image
     Image original(inputPath);
 
-    Blur blur;
-
     // Box blur test
     {
         Image img = original; // start from original each time
-        blur.applyBoxBlur(img, 3);
+        BoxBlurFilter blur(3);
+        blur.apply(img);
         img.save("boxblur_gracehopper.png");
     }
 
     // Gaussian blur test
     {
         Image img = original;
-        blur.applyGaussianBlur(img, 5, 2.0);
+        GaussianBlurFilter blur(5, 2.0);
+        blur.apply(img);
         img.save("gaussianblur_gracehopper.png");
     }
 
     // Median blur test
     {
         Image img = original;
-        blur.applyMedianBlur(img, 3);
+        MedianBlurFilter blur(3);
+        blur.apply(img);
         img.save("medianblur_gracehopper.png");
     }
 
