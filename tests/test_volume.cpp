@@ -19,7 +19,6 @@ void testVolumeLoadingFromFolder() {
     // We use a namespace alias to keep the code clean
     namespace fs = std::filesystem;
 
-    // Adjust this path depending on where you run the executable!
     std::string folderPath = "Scans/TestVolume"; 
     std::vector<std::string> filepaths;
 
@@ -41,10 +40,14 @@ void testVolumeLoadingFromFolder() {
         }
     }
 
+    if (filepaths.empty()) {
+        std::cerr << "\n[WARNING]: Scans folder is empty or contains no PNGs!" << std::endl;
+        return;
+    }
+
     // 3. Load the files into the Volume class
-    // sorting now handled by volume class
     Volume vol;
-    bool success = vol.loadFromFiles(filepaths);
+    bool success = vol.loadFromFiles(filepaths); // now sorts filepaths itself
     
     // 4. Assertions to prove it worked
     assert(success == true);
@@ -52,7 +55,6 @@ void testVolumeLoadingFromFolder() {
     assert(vol.getWidth() > 0);
     assert(vol.getHeight() > 0);
     assert(vol.getChannels() > 0);
-
 }
 
 
@@ -71,7 +73,6 @@ void testVolumeBasicAndExtend() {
     // TEST THE 3D "EXTEND" BOUNDARY CONDITION
     // Accessing z=5 should clamp to z=1
     assert(vol.getVoxel(0, 1, 5, 0) == 128);
-
 }
 
 int main() {
