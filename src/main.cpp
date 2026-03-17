@@ -13,6 +13,10 @@
 #include "ScharrFilter.h"
 #include "RobertsCrossFilter.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
+
 static void printUsage(const char* prog) {
     std::cerr
         << "Usage:\n"
