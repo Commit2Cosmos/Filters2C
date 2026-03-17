@@ -1,6 +1,7 @@
 #include "MedianBlurFilter.h"
 
 #include "Image.h"
+#include "Volume.h"
 
 #include <algorithm>
 #include <stdexcept>
@@ -82,6 +83,46 @@ void MedianBlurFilter::apply(Image& img)
                     quickSelectMedian(values, 0, static_cast<int>(values.size()) - 1, k);
 
                 img.setPixel(x, y, channel, median);
+            }
+        }
+    }
+}
+
+void MedianBlurFilter::apply(Volume& volume)
+{
+    if (!isValidKernelSize(kernelSize)) {
+        throw std::invalid_argument("Kernel size must be odd and greater than 1");
+    }
+
+    const int width = volume.getWidth();
+    const int height = volume.getHeight();
+    const int depth = volume.getDepth();
+    const int channels = volume.getChannels();
+    const int radius = kernelSize / 2;
+
+    Volume original = volume;
+
+    for (int z = 0; z < depth; ++z) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                for (int channel = 0; channel < channels; ++channel) {
+                    std::vector<unsigned char> values;
+                    values.reserve(kernelSize * kernelSize * kernelSize);
+
+                    for (int nz = z - radius; nz <= z + radius; ++nz) {
+                        for (int ny = y - radius; ny <= y + radius; ++ny) {
+                            for (int nx = x - radius; nx <= x + radius; ++nx) {
+                                values.push_back(original.getVoxel(nx, ny, nz, channel));
+                            }
+                        }
+                    }
+
+                    const int k = static_cast<int>(values.size()) / 2;
+                    const unsigned char median =
+                        quickSelectMedian(values, 0, static_cast<int>(values.size()) - 1, k);
+
+                    volume.setVoxel(x, y, z, channel, median);
+                }
             }
         }
     }
