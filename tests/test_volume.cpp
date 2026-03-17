@@ -15,12 +15,10 @@
 
 // --- Volume Class Tests ---
 
-
 void testVolumeLoadingFromFolder() {
     // We use a namespace alias to keep the code clean
     namespace fs = std::filesystem;
 
-    // Adjust this path depending on where you run the executable!
     std::string folderPath = "Scans/TestVolume"; 
     std::vector<std::string> filepaths;
 
@@ -35,28 +33,23 @@ void testVolumeLoadingFromFolder() {
     for (const auto& entry : fs::directory_iterator(folderPath)) {
         // We only want regular files (no hidden folders or sub-directories)
         if (entry.is_regular_file()) {
-            
-            // Optional: You can ensure it's specifically a PNG if your folder has junk files
+            // ensure it's specifically a PNG
             if (entry.path().extension() == ".png") {
                 filepaths.push_back(entry.path().string());
             }
         }
     }
 
-    // 3. Sort the file paths alphabetically
-    // This ensures scan_001.png comes before scan_002.png to build the Z-axis correctly.
-    std::sort(filepaths.begin(), filepaths.end());
-
     if (filepaths.empty()) {
         std::cerr << "\n[WARNING]: Scans folder is empty or contains no PNGs!" << std::endl;
         return;
     }
 
-    // 4. Load the files into the Volume class
+    // 3. Load the files into the Volume class
     Volume vol;
-    bool success = vol.loadFromFiles(filepaths);
+    bool success = vol.loadFromFiles(filepaths); // now sorts filepaths itself
     
-    // 5. Assertions to prove it worked
+    // 4. Assertions to prove it worked
     assert(success == true);
     assert(vol.getDepth() == filepaths.size()); // Depth should equal number of files
     assert(vol.getWidth() > 0);
