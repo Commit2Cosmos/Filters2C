@@ -8,6 +8,7 @@
 
 #include "Image.h"
 #include "Volume.h"
+#include "Slice.h"
 #include "BoxBlurFilter.h"
 #include "GaussianBlurFilter.h"
 #include "MedianBlurFilter.h"
@@ -137,6 +138,32 @@ void testBlurOnImage() {
         img.save("medianblur_gracehopper.png");
     }
 
+}
+
+// Loads an volume scan from the repo, applies filters,
+// and saves outputs for visual inspection.
+// --------------------------------------------------
+void testBlurOnVolume() {
+    std::cout << "\nRunning Median Blur on Volume..." << std::endl;
+
+    std::vector<std::string> filepaths;
+    for (int i = 0; i < 32; ++i) {
+        char buffer[64];
+        std::snprintf(buffer, sizeof(buffer), "Scans/TestVolume/vol%03d.png", i);
+        filepaths.push_back(buffer);
+    }
+
+    Volume volume;
+    bool loaded = volume.loadFromFiles(filepaths);
+    assert(loaded);
+
+    MedianBlurFilter blur(3);
+    blur.apply(volume);
+
+    Image yzSlice = Slice::extractYZ(volume, 16);
+    assert(yzSlice.getWidth() > 0);
+    assert(yzSlice.getHeight() > 0);
+    yzSlice.save("medianblur_volume_yz.png");
 }
 
 int main() {
