@@ -43,7 +43,7 @@ void testVolumeLoadingFromFolder() {
         }
     }
 
-    // 3. THE CRUCIAL STEP: Sort the file paths alphabetically!
+    // 3. Sort the file paths alphabetically
     // This ensures scan_001.png comes before scan_002.png to build the Z-axis correctly.
     std::sort(filepaths.begin(), filepaths.end());
 
@@ -62,9 +62,6 @@ void testVolumeLoadingFromFolder() {
     assert(vol.getWidth() > 0);
     assert(vol.getHeight() > 0);
     assert(vol.getChannels() > 0);
-
-    std::cout << "Volume Folder Loading Test Passed! Successfully loaded " 
-              << vol.getDepth() << " slices." << std::endl;
 }
 
 
@@ -83,8 +80,6 @@ void testVolumeBasicAndExtend() {
     // TEST THE 3D "EXTEND" BOUNDARY CONDITION
     // Accessing z=5 should clamp to z=1
     assert(vol.getVoxel(0, 1, 5, 0) == 128);
-    
-    std::cout << "Volume Basic & Extend Tests Passed!" << std::endl;
 }
 
 int main() {
