@@ -5,7 +5,6 @@
 
 #include "Image.h"
 #include "Volume.h"
-#include "Blur.h"
 #include "SharpenFilter.h"
 #include "EmbossFilter.h"
 #include "SobelFilter.h"
@@ -44,7 +43,6 @@ int main(int argc, char* argv[]) {
 
     Image img;
     bool  imageLoaded = false;
-    Blur  blurEngine;
 
     // Helper: ensure the 2-D image is loaded before applying a filter.
     auto ensureLoaded = [&]() {

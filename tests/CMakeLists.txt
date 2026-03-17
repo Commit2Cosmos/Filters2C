@@ -1,19 +1,18 @@
-add_executable(EmbossTest
-    test_edge.cpp
-    test_emboss.cpp
-    test_image.cpp
-    test_projections.cpp
-    test_sharpen.cpp
-    test_simple_filters.cpp
-    test_slice.cpp
-    test_volume.cpp
-
-    ${CMAKE_SOURCE_DIR}/src/EmbossFilter.cpp
-    ${CMAKE_SOURCE_DIR}/src/ConvFilter.cpp
-    ${CMAKE_SOURCE_DIR}/src/Image.cpp
+# Helper to reduce repetition
+set(TEST_SOURCES
+    test_blur
+    test_edge
+    test_emboss
+    test_image
+    test_projections
+    test_sharpen
+    test_simple_filters
+    test_slice
+    test_volume
 )
 
-target_include_directories(EmbossTest PRIVATE ${CMAKE_SOURCE_DIR}/src)
-set_target_properties(EmbossTest PROPERTIES CXX_STANDARD 17)
-
-add_test(NAME EmbossTest COMMAND EmbossTest)
+foreach(TEST_NAME IN LISTS TEST_SOURCES)
+    add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
+    target_link_libraries(${TEST_NAME} PRIVATE APFiltersLib)
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()
