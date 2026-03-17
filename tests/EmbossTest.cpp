@@ -186,8 +186,7 @@ void testKernelDotProduct_FlatPatch() {
 // After the +128 bias:  24 + 128 = 152.
 //
 // The SE kernel is the 180° rotation of NW, so its dot-product on the
-// same patch is exactly −24, giving −24 + 128 = 104.  This pair
-// validates rotational antisymmetry through the full pipeline.
+// same patch is exactly −24, giving −24 + 128 = 104.
 
 static const float RAMP_3X3[3][3] = {
     { 0.f, 1.f, 2.f },
