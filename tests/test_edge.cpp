@@ -163,7 +163,6 @@ static int runUnitTests() {
         SobelFilter sobel;
         sobel.apply(img);
         if (checkPixels(img, expected, "Sobel")) {
-            std::cout << "  PASS Sobel" << std::endl;
             ++passed;
         } else { ++failed; }
     }
@@ -179,7 +178,6 @@ static int runUnitTests() {
         PrewittFilter prewitt;
         prewitt.apply(img);
         if (checkPixels(img, expected, "Prewitt")) {
-            std::cout << "  PASS Prewitt" << std::endl;
             ++passed;
         } else { ++failed; }
     }
@@ -195,7 +193,6 @@ static int runUnitTests() {
         ScharrFilter scharr;
         scharr.apply(img);
         if (checkPixels(img, expected, "Scharr")) {
-            std::cout << "  PASS Scharr" << std::endl;
             ++passed;
         } else { ++failed; }
     }
@@ -211,7 +208,6 @@ static int runUnitTests() {
         RobertsCrossFilter roberts;
         roberts.apply(img);
         if (checkPixels(img, expected, "Roberts Cross")) {
-            std::cout << "  PASS Roberts Cross" << std::endl;
             ++passed;
         } else { ++failed; }
     }
@@ -249,7 +245,6 @@ static int runUnitTests() {
         pass = pass && checkPixels(rgb, expected, "Auto-grayscale (Sobel on RGB)");
 
         if (pass) {
-            std::cout << "  PASS Auto-grayscale (Sobel on RGB)" << std::endl;
             ++passed;
         } else { ++failed; }
     }
@@ -295,7 +290,6 @@ static int runImageTest(const std::string& path) {
         std::cout << "Saved " << outfile << std::endl;
     }
 
-    std::cout << "Done!" << std::endl;
     return 0;
 }
 
