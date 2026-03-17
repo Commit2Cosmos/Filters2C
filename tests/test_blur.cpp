@@ -50,7 +50,7 @@ void testGaussianBlur() {
         }
     }
 
-    GaussianBlurFilter blur(3);
+    GaussianBlurFilter blur(3, 2.0);
     blur.apply(img);
 
     // Expected result after Gaussian blur with kernel size 3 and sigma 2:
@@ -58,6 +58,54 @@ void testGaussianBlur() {
     unsigned char centerValue = img.getPixel(1, 1, 0);
     assert(centerValue < 88);
 
+}
+
+void testGaussianBlur3D() {
+    Volume vol(3, 3, 3, 1); // 3x3x3 grayscale volume
+
+    // Fill everything with 100 except center voxel = 0
+    for (int z = 0; z < 3; ++z) {
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < 3; ++x) {
+                vol.setVoxel(x, y, z, 0, (x == 1 && y == 1 && z == 1) ? 0 : 100);
+            }
+        }
+    }
+
+    GaussianBlurFilter blur(3, 2.0);
+    blur.apply(vol);
+
+    // Center voxel should be blurred upward from 0
+    unsigned char centerValue = vol.getVoxel(1, 1, 1, 0);
+    assert(centerValue > 0);
+
+    // It should still be lower than a surrounding voxel
+    unsigned char neighborValue = vol.getVoxel(1, 1, 0, 0);
+    assert(centerValue < neighborValue);
+}
+
+void testGaussianBlur3DConstantVolume() {
+    Volume vol(3, 3, 3, 1);
+
+    // Constant volume should remain unchanged after Gaussian blur
+    for (int z = 0; z < 3; ++z) {
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < 3; ++x) {
+                vol.setVoxel(x, y, z, 0, 100);
+            }
+        }
+    }
+
+    GaussianBlurFilter blur(3, 2.0);
+    blur.apply(vol);
+
+    for (int z = 0; z < 3; ++z) {
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < 3; ++x) {
+                assert(vol.getVoxel(x, y, z, 0) == 100);
+            }
+        }
+    }
 }
 
 void testMedianBlur() {
@@ -171,6 +219,9 @@ int main() {
 
     testBoxBlur();
     testGaussianBlur();
+    testGaussianBlur3D();
+    testGaussianBlur3DConstantVolume();
+
     testMedianBlur();
     testMedianBlur3D();
     testBlurOnImage();

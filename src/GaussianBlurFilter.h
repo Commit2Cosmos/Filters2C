@@ -2,21 +2,24 @@
 #define GAUSSIAN_BLUR_FILTER_H
 
 #include "Filter.h"
-
 #include <vector>
 
+class Image;
+class Volume;
+
 class GaussianBlurFilter : public Filter {
-public:
-    explicit GaussianBlurFilter(int kernelSize, double sigma = 2.0);
-
-    void apply(Image& image) override;
-
 private:
     int kernelSize;
     double sigma;
 
     bool isValidKernelSize(int kernelSize) const;
-    std::vector<std::vector<double>> createGaussianKernel(int kernelSize, double sigma) const;
+    std::vector<double> createGaussianKernel1D(int kernelSize, double sigma) const;
+
+public:
+    GaussianBlurFilter(int kernelSize, double sigma);
+
+    void apply(Image& image) override;
+    void apply(Volume& volume) override;
 };
 
-#endif
+#endif // GAUSSIAN_BLUR_FILTER_H
