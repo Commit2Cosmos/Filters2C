@@ -16,7 +16,6 @@ Image::Image(const std::string& filepath) {
     load(filepath);
 }
 
-
 // File I/O
 bool Image::load(const std::string& filepath) {
     unsigned char* raw_data = stbi_load(filepath.c_str(), &width, &height, &channels, 0);

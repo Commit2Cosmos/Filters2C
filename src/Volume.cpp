@@ -1,7 +1,39 @@
 #include "Volume.h"
 #include <iostream>
 #include <algorithm> // For std::clamp
+#include <cctype> // for std::isdigit
 #include "stb_image.h"
+
+
+namespace helper{
+    // extracts the LAST number from the filename and returns it as an integer
+    // done this way so can work with filepaths that include folders with numbers in. e.g. folder1/scan2.png
+    int extractSliceNumber(const std::string& str) {
+        int num = 0;
+        int multiplier = 1;
+        bool found_digit = false;
+        
+        // iterate backwards through string
+        for (int i = str.length() - 1; i >= 0; --i) {
+            if (std::isdigit(str[i])) {
+                num += (str[i] - '0') * multiplier;
+                multiplier *= 10;
+                found_digit = true;
+            } else if (found_digit) {
+                // found the last block of digits and hit non-digit, so stop.
+                break;
+            }
+        }
+        return num;
+    }
+
+    // holds filepath and its index
+    struct FileNode {
+        std::string path;
+        int index;
+    };
+}
+
 
 // Constructors
 Volume::Volume() : width(0), height(0), depth(0), channels(0) {}
@@ -19,18 +51,38 @@ bool Volume::loadFromFiles(const std::vector<std::string>& filepaths) {
         return false;
     }
 
-    depth = filepaths.size();
-    
-    // Clear any existing data
+    // Pre-compute the slice numbers once per file (O(N) parsing)
+    std::vector<helper::FileNode> nodes;
+    nodes.reserve(filepaths.size());  // reserve memory rather than dynamically resizing
+    for (const auto& path : filepaths) {
+        nodes.push_back({path, helper::extractSliceNumber(path)});
+    }
+
+    // CUSTOM NATURAL INSERTION SORT
+    for (size_t i = 1; i < nodes.size(); ++i) {
+        helper::FileNode key = nodes[i];
+        int j = i - 1;
+
+        // Compare the pre-extracted integers directly
+        while (j >= 0 && nodes[j].index > key.index) {
+            nodes[j + 1] = nodes[j];
+            j = j - 1;
+        }
+        nodes[j + 1] = key;
+    }
+
+    depth = nodes.size();
     data.clear();
 
+    // loop through files
     for (int z = 0; z < depth; ++z) {
         int img_w, img_h, img_c;
-        // Load the 2D slice [cite: 8]
-        unsigned char* raw_data = stbi_load(filepaths[z].c_str(), &img_w, &img_h, &img_c, 0);
+        
+        // Access the string path from our sorted struct
+        unsigned char* raw_data = stbi_load(nodes[z].path.c_str(), &img_w, &img_h, &img_c, 0);
 
         if (!raw_data) {
-            std::cerr << "Failed to load slice: " << filepaths[z] << std::endl;
+            std::cerr << "Failed to load slice: " << nodes[z].path << std::endl;
             return false;
         }
 
@@ -39,21 +91,17 @@ bool Volume::loadFromFiles(const std::vector<std::string>& filepaths) {
             width = img_w;
             height = img_h;
             channels = img_c;
-            data.reserve(width * height * depth * channels); // Pre-allocate the entire vector, rather than resize every time
+            data.reserve(width * height * depth * channels); 
         } else {
-            // Safety check: Ensure all subsequent slices match the first slice's dimensions
             if (img_w != width || img_h != height || img_c != channels) {
-                std::cerr << "Error: Slice dimensions mismatch at " << filepaths[z] << std::endl;
+                std::cerr << "Error: Slice dimensions mismatch at " << nodes[z].path << std::endl;
                 stbi_image_free(raw_data);
                 return false;
             }
         }
 
-        // Insert this slice's data into our main 1D volume vector
         int slice_size = width * height * channels;
         data.insert(data.end(), raw_data, raw_data + slice_size);
-
-        // Free the memory allocated by stb_image for this specific slice
         stbi_image_free(raw_data);
     }
 
