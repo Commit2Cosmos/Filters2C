@@ -17,11 +17,10 @@ file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/src/*.h)
 # Note, you will need to uncomment different files here as you start to add them to your project
 add_executable(APImageFilters
     src/main.cpp
-    #src/Filter.cpp
-    #src/Image.cpp
-    #src/Projection.cpp
-    #src/Slice.cpp
-    #src/Volume.cpp
+    src/Image.cpp
+    src/ConvFilter.cpp
+    src/EmbossFilter.cpp
+    src/SharpenFilter.cpp
     ${HEADER_FILES}
 )
 
@@ -30,4 +29,5 @@ include(CTest)
 enable_testing()
 
 # Include the tests
+add_subdirectory(tests)
 include(${CMAKE_SOURCE_DIR}/cmdtests.cmake)
