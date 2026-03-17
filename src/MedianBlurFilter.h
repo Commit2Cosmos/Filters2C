@@ -8,7 +8,7 @@ public:
     explicit MedianBlurFilter(int kernelSize);
 
     void apply(Image& image) override;
-
+    void apply(Volume& volume) override;
 private:
     int kernelSize;
 

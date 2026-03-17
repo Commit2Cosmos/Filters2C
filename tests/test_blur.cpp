@@ -7,6 +7,7 @@
 #include <cassert>
 
 #include "Image.h"
+#include "Volume.h"
 #include "BoxBlurFilter.h"
 #include "GaussianBlurFilter.h"
 #include "MedianBlurFilter.h"
@@ -79,6 +80,26 @@ void testMedianBlur() {
     assert(img.getPixel(1, 1, 0) == 100);
 
 }
+void testMedianBlur3D() {
+    Volume vol(3, 3, 3, 1); // 3x3x3 grayscale volume
+
+    // Fill the volume with 100, except the center voxel which is 0
+    for (int z = 0; z < 3; ++z) {
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < 3; ++x) {
+                vol.setVoxel(x, y, z, 0, 100);
+            }
+        }
+    }
+    vol.setVoxel(1, 1, 1, 0, 0);
+
+    MedianBlurFilter blur(3);
+    blur.apply(vol);
+
+    // The 3x3x3 neighbourhood contains twenty-six 100s and one 0,
+    // so the median at the center should be 100.
+    assert(vol.getVoxel(1, 1, 1, 0) == 100);
+}
 
 // Loads an image from the repo, applies filters,
 // and saves outputs for visual inspection.
@@ -124,6 +145,7 @@ int main() {
     testBoxBlur();
     testGaussianBlur();
     testMedianBlur();
+    testMedianBlur3D();
     testBlurOnImage();
 
     return 0;
