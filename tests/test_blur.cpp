@@ -192,7 +192,7 @@ void testBlurOnImage() {
 // and saves outputs for visual inspection.
 // --------------------------------------------------
 void testBlurOnVolume() {
-    std::cout << "\nRunning Median Blur on Volume..." << std::endl;
+    std::cout << "\nRunning Blur Filters on Volume..." << std::endl;
 
     std::vector<std::string> filepaths;
     for (int i = 0; i < 32; ++i) {
@@ -204,16 +204,36 @@ void testBlurOnVolume() {
     Volume volume;
     bool loaded = volume.loadFromFiles(filepaths);
     assert(loaded);
+   
+    {
+        Image yzSlice = Slice::extractYZ(volume, 16);
+        assert(yzSlice.getWidth() > 0);
+        assert(yzSlice.getHeight() > 0);
+        yzSlice.save("original_volume_yz.png");
+    }
 
-    MedianBlurFilter blur(3);
-    blur.apply(volume);
+    {
+        Volume blurredVolume = volume;
+        GaussianBlurFilter blur(3, 2.0);
+        blur.apply(blurredVolume);
 
-    Image yzSlice = Slice::extractYZ(volume, 16);
-    assert(yzSlice.getWidth() > 0);
-    assert(yzSlice.getHeight() > 0);
-    yzSlice.save("medianblur_volume_yz.png");
+        Image yzSlice = Slice::extractYZ(blurredVolume, 16);
+        assert(yzSlice.getWidth() > 0);
+        assert(yzSlice.getHeight() > 0);
+        yzSlice.save("gaussianblur_volume_yz.png");
+    }
+
+    {
+        Volume blurredVolume = volume;
+        MedianBlurFilter blur(3);
+        blur.apply(blurredVolume);
+
+        Image yzSlice = Slice::extractYZ(blurredVolume, 16);
+        assert(yzSlice.getWidth() > 0);
+        assert(yzSlice.getHeight() > 0);
+        yzSlice.save("medianblur_volume_yz.png");
+    }
 }
-
 int main() {
     std::cout << "Running Blur Class Tests...";
 
