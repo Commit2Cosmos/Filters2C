@@ -1,102 +1,47 @@
+// A minimal example file showing how to include the stb image headers,
+// and how to read and write image files using these headers.
+//
+// Compilation with (e.g.): 
+//    g++-15 main.cpp -o main [MacOS]
+//    g++ main.cpp -o main [Ubuntu/WSL]
+//
+// Minimal example written by T.M. Davison (2023-26) [CHANGE THIS!]
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include <iostream>
-#include <string>
-#include <vector>
-#include <stdexcept>
 
-#include "Image.h"
-#include "Volume.h"
-#include "Blur.h"
-#include "SharpenFilter.h"
-#include "EmbossFilter.h"
-#include "SobelFilter.h"
-#include "PrewittFilter.h"
-#include "ScharrFilter.h"
-#include "RobertsCrossFilter.h"
-
-
-static void printUsage(const char* prog) {
-    std::cerr
-        << "Usage:\n"
-        << "  " << prog << " -i <input.png> [filters...] <output.png>\n"
-        << "  " << prog << " -d <volume_dir> [blur] [-f <first>] [-l <last>] (-s|-p) ... <output.png>\n"
-        << "\nImage filters:\n"
-        << "  -L, --sharpen                  Sharpen filter\n"
-        << "  -m, --emboss <strength> <dir> <HSV|HSL>\n";
-}
-
-// Returns true if `s` can be parsed as a double (used for optional sigma).
-static bool isNumber(const std::string& s) {
-    try { std::stod(s); return true; }
-    catch (...) { return false; }
-}
+// Uncomment these as you start to implement the different classes
+// #include "Image.h"
+// #include "Filter.h"
+// #include "Volume.h"
+// #include "Projection.h"
+// #include "Slice.h"
 
 int main(int argc, char* argv[]) {
-    if (argc < 4) { printUsage(argv[0]); return 1; }
 
-    const std::vector<std::string> args(argv + 1, argv + argc);
-    // The last positional argument is always the output path.
-    const std::string outputPath = args.back();
+    /* 
+    You need to change all of the code in this main function; it is just a placeholder
+    to demonstrate how to read and write images with the stbi header files.
+    */
+    int w, h, c;
+    unsigned char* data;
 
-    bool isVolumeMode = false;
-    std::string inputImagePath;
-    std::string volumeDir;
+    // Read in image file
+    data = stbi_load("../Images/small.png", &w, &h, &c, 0);
 
-    Image img;
-    bool  imageLoaded = false;
-    Blur  blurEngine;
+    // Print image size to screen
+    std::cout << "Image loaded with size " << w << " x " << h << " with " << c << " channel(s)." << std::endl; 
 
-    // Helper: ensure the 2-D image is loaded before applying a filter.
-    auto ensureLoaded = [&]() {
-        if (!imageLoaded) {
-            if (!img.load(inputImagePath)) {
-                std::cerr << "Error: cannot load image '" << inputImagePath << "'\n";
-                std::exit(1);
-            }
-            imageLoaded = true;
-        }
-    };
+    // Save image to new filename
+    int success = stbi_write_png("output.png", w, h, c, data, 0);
 
-    // ── Argument parsing loop ─────────────────────────────────────────────────
-    for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
-        const std::string& a = args[i];
+    // Deallocate memory
+    stbi_image_free(data);
 
-        // ── Input source ───────────────────────────────────────────────────
-        if (a == "-i") {
-            inputImagePath = args[++i];
-            isVolumeMode   = false;
+    return 0;
 
-        } else if (a == "-d") {
-            volumeDir    = args[++i];
-            isVolumeMode = true;
-
-        // ── Sharpen ───────────────────────────────────────────────────────
-        } else if (a == "-L" || a == "--sharpen") {
-            if (!isVolumeMode) {
-                ensureLoaded();
-                SharpenFilter f;
-                f.apply(img);
-            }
-
-        // ── Emboss ────────────────────────────────────────────────────────
-        } else if (a == "-m" || a == "--emboss") {
-            float       strength   = std::stof(args[++i]);
-            std::string direction  = args[++i];
-            std::string colorspace = args[++i];
-
-            if (!isVolumeMode) {
-                ensureLoaded();
-                EmbossFilter f(
-                    strength, 
-                    EmbossFilter::parseDirection(direction),
-                    EmbossFilter::parseColorSpace(colorspace));
-                f.apply(img);
-            }
-        }
-
-        if (isVolumeMode) {
-
-        }
-
-        return 0;
-    }
 }
