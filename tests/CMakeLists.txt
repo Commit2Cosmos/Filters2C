@@ -1,5 +1,13 @@
 add_executable(EmbossTest
-    EmbossTest.cpp
+    test_edge.cpp
+    test_emboss.cpp
+    test_image.cpp
+    test_projections.cpp
+    test_sharpen.cpp
+    test_simple_filters.cpp
+    test_slice.cpp
+    test_volume.cpp
+
     ${CMAKE_SOURCE_DIR}/src/EmbossFilter.cpp
     ${CMAKE_SOURCE_DIR}/src/ConvFilter.cpp
     ${CMAKE_SOURCE_DIR}/src/Image.cpp

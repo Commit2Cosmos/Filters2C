@@ -14,13 +14,25 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/src/*.h)
 
 # Add the executable
-# Note, you will need to uncomment different files here as you start to add them to your project
 add_executable(APImageFilters
     src/main.cpp
-    src/Image.cpp
+    src/Blur.cpp
+    src/Brightness.cpp
     src/ConvFilter.cpp
     src/EmbossFilter.cpp
+    src/GrayScale.cpp
+    src/HistogramEqualisation.cpp
+    src/Image.cpp
+    src/PrewittFilter.cpp
+    src/Projection.cpp
+    src/RobertsCrossFilter.cpp
+    src/SaltAndPepper.cpp
+    src/ScharrFilter.cpp
     src/SharpenFilter.cpp
+    src/Slice.cpp
+    src/SobelFilter.cpp
+    src/Threshold.cpp
+    src/Volume.cpp
     ${HEADER_FILES}
 )
 
