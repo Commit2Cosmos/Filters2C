@@ -3,7 +3,7 @@
 #include <algorithm> // Only for std::clamp (allowed) and std::swap
 
 // Local Helper Functions
-namespace {
+namespace helper{
 
     // Helper to validate and convert 1-based user indices to 0-based volume indices
     void getZBounds(int depth, int z_min, int z_max, int& out_start, int& out_end) {
@@ -22,7 +22,7 @@ namespace {
         if (out_start > out_end) std::swap(out_start, out_end);
     }
 
-    
+
     // CUSTOM MEDIAN ALGORITHM: Quickselect
     // O(N) average case for finding a median.
     
@@ -65,11 +65,11 @@ namespace {
         } 
         // If 'k' is less than the pivot index, the target is in the left partition
         else if (k < pivotIndex) {
-            return quickSelectMedian(arr, left, pivotIndex - 1, k);
+            return helper::quickSelectMedian(arr, left, pivotIndex - 1, k);
         } 
         // If 'k' is greater than the pivot index, the target is in the right partition
         else {
-            return quickSelectMedian(arr, pivotIndex + 1, right, k);
+            return helper::quickSelectMedian(arr, pivotIndex + 1, right, k);
         }
     }
 }
@@ -77,7 +77,7 @@ namespace {
 // --- Maximum Intensity Projection ---
 Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -104,7 +104,7 @@ Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
 // --- Minimum Intensity Projection ---
 Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -131,7 +131,7 @@ Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
 // --- Mean Intensity Projection ---
 Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -161,7 +161,7 @@ Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
 // --- Median Intensity Projection ---
 Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -184,7 +184,7 @@ Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
                 }
                 
                 // Use custom Quickselect algorithm to find the median
-                unsigned char median_val = quickSelectMedian(values, 0, num_slices - 1, median_index);
+                unsigned char median_val = helper::quickSelectMedian(values, 0, num_slices - 1, median_index);
                 
                 result.setPixel(x, y, c, median_val);
             }
