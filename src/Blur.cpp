@@ -42,22 +42,55 @@ std::vector<std::vector<double>> Blur::createGaussianKernel(int kernelSize, doub
 }
 
 // Helper function to get median value from kernel window for one channel
-unsigned char Blur::getMedianValue(const Image& img, int centerX, int centerY, int channel, int kernelSize) const
-{
-    const int radius = kernelSize / 2;
-    std::vector<unsigned char> values;
-    values.reserve(kernelSize * kernelSize);
+// CUSTOM MEDIAN ALGORITHM: Quickselect
+// O(N) average case for finding a median.
 
-    for (int y = centerY - radius; y <= centerY + radius; ++y) {
-        for (int x = centerX - radius; x <= centerX + radius; ++x) {
-            values.push_back(img.getPixel(x, y, channel));
+// Rearranges the array such that elements <= pivot are on the left,
+// and elements > pivot are on the right. Returns the final index of the pivot.
+int partition(std::vector<unsigned char>& arr, int left, int right) {
+    // Choose rightmost element as the pivot value
+    unsigned char pivot = arr[right];
+    
+    // 'i' tracks boundary where the next smaller-than-pivot element should go
+    int i = left;
+    
+    for (int j = left; j < right; ++j) {
+        // If current element smaller than or equal to pivot
+        if (arr[j] <= pivot) {
+            // Swap it into the "left" section of partition
+            std::swap(arr[i], arr[j]);
+            i++; // Move boundary forward
         }
     }
-
-    std::sort(values.begin(), values.end());
-    return values[values.size() / 2];
+    
+    // Place the pivot in final sorted position (between two partitions)
+    std::swap(arr[i], arr[right]);
+    return i; // Return index where the pivot settled
 }
 
+
+// Recursive function to find the element that would be at index 'k' if the array were sorted.
+// For median, 'k' typically arr.size() / 2.
+unsigned char quickSelectMedian(std::vector<unsigned char>& arr, int left, int right, int k) {
+    // Base case: If the range contains only one element, we've found our target
+    if (left == right) return arr[left];
+    
+    // Partition array and get position of the pivot
+    int pivotIndex = partition(arr, left, right);
+    
+    // If pivot landed exactly on index 'k', we've found the k-th smallest element
+    if (k == pivotIndex) {
+        return arr[k];
+    } 
+    // If 'k' is less than the pivot index, the target is in the left partition
+    else if (k < pivotIndex) {
+        return quickSelectMedian(arr, left, pivotIndex - 1, k);
+    } 
+    // If 'k' is greater than the pivot index, the target is in the right partition
+    else {
+        return quickSelectMedian(arr, pivotIndex + 1, right, k);
+    }
+}
 // Apply Blur Algorithms
 void Blur::applyBoxBlur(Image& img, int kernelSize)
 {
@@ -167,6 +200,7 @@ void Blur::applyMedianBlur(Image& img, int kernelSize)
     const int width = img.getWidth();
     const int height = img.getHeight();
     const int channels = img.getChannels();
+    const int radius = kernelSize / 2;
 
     // Copy original image
     Image original = img;
@@ -175,8 +209,19 @@ void Blur::applyMedianBlur(Image& img, int kernelSize)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int channel = 0; channel < channels; ++channel) {
-                // Collect neighbouring pixel values, sort them, and select the median
-                const unsigned char median = getMedianValue(original, x, y, channel, kernelSize);
+                // Collect neighbouring pixel values
+                std::vector<unsigned char> values;
+                values.reserve(kernelSize * kernelSize);
+
+                for (int ny = y - radius; ny <= y + radius; ++ny) {
+                    for (int nx = x - radius; nx <= x + radius; ++nx) {
+                        values.push_back(original.getPixel(nx, ny, channel));
+                    }
+                }
+
+                // Select median using quickselect
+                int k = static_cast<int>(values.size()) / 2;
+                unsigned char median = quickSelectMedian(values, 0, static_cast<int>(values.size()) - 1, k);
 
                 // Write median pixel value
                 img.setPixel(x, y, channel, median);
