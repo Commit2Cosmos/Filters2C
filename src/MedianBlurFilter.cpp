@@ -65,12 +65,13 @@ void MedianBlurFilter::apply(Image& img)
     const int radius = kernelSize / 2;
 
     Image original = img;
+    std::vector<unsigned char> values;
+    values.reserve(kernelSize * kernelSize);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int channel = 0; channel < channels; ++channel) {
-                std::vector<unsigned char> values;
-                values.reserve(kernelSize * kernelSize);
+                values.clear();
 
                 for (int ny = y - radius; ny <= y + radius; ++ny) {
                     for (int nx = x - radius; nx <= x + radius; ++nx) {
@@ -101,13 +102,13 @@ void MedianBlurFilter::apply(Volume& volume)
     const int radius = kernelSize / 2;
 
     Volume original = volume;
-
+    std::vector<unsigned char> values;
+    values.reserve(kernelSize * kernelSize * kernelSize);
     for (int z = 0; z < depth; ++z) {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 for (int channel = 0; channel < channels; ++channel) {
-                    std::vector<unsigned char> values;
-                    values.reserve(kernelSize * kernelSize * kernelSize);
+                    values.clear();
 
                     for (int nz = z - radius; nz <= z + radius; ++nz) {
                         for (int ny = y - radius; ny <= y + radius; ++ny) {
