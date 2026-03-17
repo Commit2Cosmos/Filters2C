@@ -2,6 +2,7 @@
 #define EMBOSS_FILTER_H
 
 #include "ConvFilter.h"
+#include "Image.h"
 #include <vector>
 
 /**
@@ -14,7 +15,19 @@
  */
 class EmbossFilter : public ConvFilter {
 public:
-    EmbossFilter();
+    enum Direction { NW, NE, SE, SW };
+    enum class ColorSpace  { RGB, Grayscale, HSV };
+
+    explicit EmbossFilter(
+        float strength = 1.0f,
+        Direction dir = Direction::NW,
+        ColorSpace cs = ColorSpace::RGB
+    );
+
+    static Direction parseDirection(const std::string& s);
+    static ColorSpace parseColorSpace(const std::string& s);
+
+    void apply(Image& img) override;
 
 protected:
     // Overridden to shift output by +128 (centres result around mid-grey).
@@ -22,6 +35,14 @@ protected:
     std::vector<float> combineResponses(
         const std::vector<float>& respX,
         const std::vector<float>& respY) const override;
-};
+        
+private:
+    float m_strength;
+    ColorSpace m_colorspace;
 
+    static Kernel rotateKernel(const Kernel& k, int turns);
+    
+    friend class EmbossFilterTest;
+};
+        
 #endif // EMBOSS_FILTER_H
