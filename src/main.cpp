@@ -21,6 +21,7 @@ static void printUsage(const char* prog) {
         << "  " << prog << " -d <volume_dir> [blur] [-f <first>] [-l <last>] (-s|-p) ... <output.png>\n"
         << "\nImage filters:\n"
         << "  -L, --sharpen                  Sharpen filter\n"
+        << "  -e, --edge <method>            Edge detection (Sobel|Prewitt|Scharr|RobertsCross)\n"
         << "  -m, --emboss <strength> <dir> <HSV|HSL>\n";
 }
 
@@ -86,10 +87,29 @@ int main(int argc, char* argv[]) {
             if (!isVolumeMode) {
                 ensureLoaded();
                 EmbossFilter f(
-                    strength, 
+                    strength,
                     EmbossFilter::parseDirection(direction),
                     EmbossFilter::parseColorSpace(colorspace));
                 f.apply(img);
+            }
+
+        // ── Edge detection ──────────────────────────────────────────────
+        } else if (a == "-e" || a == "--edge") {
+            std::string method = args[++i];
+            if (!isVolumeMode) {
+                ensureLoaded();
+                if (method == "Sobel") {
+                    SobelFilter f; f.apply(img);
+                } else if (method == "Prewitt") {
+                    PrewittFilter f; f.apply(img);
+                } else if (method == "Scharr") {
+                    ScharrFilter f; f.apply(img);
+                } else if (method == "RobertsCross") {
+                    RobertsCrossFilter f; f.apply(img);
+                } else {
+                    std::cerr << "Error: unknown edge method '" << method << "'\n";
+                    return 1;
+                }
             }
         }
 
