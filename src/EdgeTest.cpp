@@ -41,12 +41,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Loaded " << original.getWidth() << "x" << original.getHeight()
               << " (" << original.getChannels() << " channels)" << std::endl;
 
-    // Convert to greyscale
-    original.toGrayscale();
-    std::cout << "Converted to greyscale" << std::endl;
-
-    // Save greyscale version for reference
-    original.save("greyscale.png");
+    // Each edge filter handles grayscale conversion internally,
+    // so no need to call toGrayscale() here.
 
     // Test each filter
     struct TestCase {

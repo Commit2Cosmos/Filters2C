@@ -13,6 +13,7 @@
 class SobelFilter : public ConvFilter {
 public:
     SobelFilter();
+    void apply(Image& image) override;
 };
 
 #endif // SOBEL_FILTER_H

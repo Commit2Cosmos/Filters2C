@@ -13,6 +13,7 @@
 class ScharrFilter : public ConvFilter {
 public:
     ScharrFilter();
+    void apply(Image& image) override;
 };
 
 #endif // SCHARR_FILTER_H

@@ -10,6 +10,11 @@ ScharrFilter::ScharrFilter()
         {{ -3, -10, -3 },
          {  0,   0,  0 },
          {  3,  10,  3 }})
-{
-    normalise_ = true;
+{}
+
+void ScharrFilter::apply(Image& image) {
+    if (image.getChannels() > 1) image.toGrayscale();
+    auto results = computeResults(image);
+    normalise(results);
+    writeResults(image, results);
 }

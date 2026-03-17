@@ -13,6 +13,7 @@
 class PrewittFilter : public ConvFilter {
 public:
     PrewittFilter();
+    void apply(Image& image) override;
 };
 
 #endif // PREWITT_FILTER_H

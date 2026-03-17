@@ -10,6 +10,11 @@ SobelFilter::SobelFilter()
         {{ -1, -2, -1 },
          {  0,  0,  0 },
          {  1,  2,  1 }})
-{
-    normalise_ = true;
+{}
+
+void SobelFilter::apply(Image& image) {
+    if (image.getChannels() > 1) image.toGrayscale();
+    auto results = computeResults(image);
+    normalise(results);
+    writeResults(image, results);
 }

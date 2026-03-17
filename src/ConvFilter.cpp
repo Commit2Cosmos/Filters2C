@@ -36,11 +36,18 @@ ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) : kernels_({std::move(ker
  * @param image The image to filter, modified in-place.
  */
 void ConvFilter::apply(Image& image) {
-    const int w  = image.getWidth();
-    const int h  = image.getHeight();
-    const int ch = image.getChannels();
+    auto results = computeResults(image);
+    writeResults(image, results);
+}
 
-    // Compute all channels
+
+// ── computeResults ───────────────────────────────────────────────────────────
+
+/**
+ * @brief Runs the convolution on every channel and returns float results.
+ */
+std::vector<std::vector<float>> ConvFilter::computeResults(const Image& image) const {
+    const int ch = image.getChannels();
     std::vector<std::vector<float>> results(ch);
 
     for (int c = 0; c < ch; ++c) {
@@ -52,37 +59,51 @@ void ConvFilter::apply(Image& image) {
             results[c] = combineResponses(respX, respY);
         }
     }
+    return results;
+}
 
-    // Write back all channels
-    // Filters that set normalise_ = true (e.g. edge detectors) have
-    // their output scaled to [0, 255] so large-weight kernels like
-    // Scharr don't saturate to all-white.  Other filters keep the
-    // existing clamp behaviour.
-    if (normalise_) {
-        // Find the global maximum across all channels
-        float maxVal = 0.0f;
-        for (int c = 0; c < ch; ++c)
-            for (auto v : results[c])
-                if (v > maxVal) maxVal = v;
 
-        float scale = (maxVal > 0.0f) ? 255.0f / maxVal : 1.0f;
+// ── normalise ────────────────────────────────────────────────────────────────
 
-        for (int c = 0; c < ch; ++c)
-            for (int y = 0; y < h; ++y)
-                for (int x = 0; x < w; ++x) {
-                    float val = results[c][y * w + x] * scale;
-                    image.setPixel(x, y, c,
-                        static_cast<unsigned char>(std::min(255.0f, val)));
-                }
-    } else {
-        for (int c = 0; c < ch; ++c)
-            for (int y = 0; y < h; ++y)
-                for (int x = 0; x < w; ++x) {
-                    float val = results[c][y * w + x];
-                    val = std::max(0.0f, std::min(255.0f, val));
-                    image.setPixel(x, y, c, static_cast<unsigned char>(val));
-                }
-    }
+/**
+ * @brief Scales float results so that the global maximum maps to 255.
+ *
+ * Call this on the output of computeResults() before writeResults()
+ * to ensure large-weight kernels (e.g. Scharr) don't saturate.
+ */
+void ConvFilter::normalise(std::vector<std::vector<float>>& results) const {
+    float maxVal = 0.0f;
+    for (auto& ch : results)
+        for (auto v : ch)
+            if (v > maxVal) maxVal = v;
+
+    if (maxVal <= 0.0f) return;
+
+    float scale = 255.0f / maxVal;
+    for (auto& ch : results)
+        for (auto& v : ch)
+            v *= scale;
+}
+
+
+// ── writeResults ─────────────────────────────────────────────────────────────
+
+/**
+ * @brief Clamps float results to [0, 255] and writes them back to the image.
+ */
+void ConvFilter::writeResults(Image& image,
+                              const std::vector<std::vector<float>>& results) const {
+    const int w = image.getWidth();
+    const int h = image.getHeight();
+    const int ch = image.getChannels();
+
+    for (int c = 0; c < ch; ++c)
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x) {
+                float val = results[c][y * w + x];
+                val = std::max(0.0f, std::min(255.0f, val));
+                image.setPixel(x, y, c, static_cast<unsigned char>(val));
+            }
 }
 
 

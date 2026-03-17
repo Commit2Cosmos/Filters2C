@@ -10,6 +10,11 @@ PrewittFilter::PrewittFilter()
         {{ -1, -1, -1 },
          {  0,  0,  0 },
          {  1,  1,  1 }})
-{
-    normalise_ = true;
+{}
+
+void PrewittFilter::apply(Image& image) {
+    if (image.getChannels() > 1) image.toGrayscale();
+    auto results = computeResults(image);
+    normalise(results);
+    writeResults(image, results);
 }

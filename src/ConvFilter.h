@@ -24,8 +24,11 @@ protected:
         const std::vector<float>& respX,
         const std::vector<float>& respY) const;
 
+    std::vector<std::vector<float>> computeResults(const Image& image) const;
+    void normalise(std::vector<std::vector<float>>& results) const;
+    void writeResults(Image& image, const std::vector<std::vector<float>>& results) const;
+
     std::vector<Kernel> kernels_;
-    bool normalise_ = false;
 
 };
 

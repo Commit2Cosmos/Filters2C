@@ -13,6 +13,7 @@
 class RobertsCrossFilter : public ConvFilter {
 public:
     RobertsCrossFilter();
+    void apply(Image& image) override;
 };
 
 #endif // ROBERTS_CROSS_FILTER_H
