@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 BoxBlurFilter::BoxBlurFilter(int kernelSize) : kernelSize(kernelSize) {}
 
@@ -24,26 +25,51 @@ void BoxBlurFilter::apply(Image& img)
     const int radius = kernelSize / 2;
 
     Image original = img;
+    std::vector<int> horizontalSums(width * height * channels, 0);
+    const int pixelCount = kernelSize * kernelSize;
 
+    auto horizontalIndex = [width, channels](int x, int y, int c) {
+        return (y * width + x) * channels + c;
+    };
+
+    // Pass 1: horizontal sliding window sums
     for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            const int xStart = std::max(0, x - radius);
-            const int xEnd = std::min(width - 1, x + radius);
-            const int yStart = std::max(0, y - radius);
-            const int yEnd = std::min(height - 1, y + radius);
+        for (int c = 0; c < channels; ++c) {
+            int runningSum = 0;
 
-            for (int c = 0; c < channels; ++c) {
-                int sum = 0;
-                int count = 0;
+            for (int nx = -radius; nx <= radius; ++nx) {
+                runningSum += original.getPixel(nx, y, c);
+            }
 
-                for (int ny = yStart; ny <= yEnd; ++ny) {
-                    for (int nx = xStart; nx <= xEnd; ++nx) {
-                        sum += original.getPixel(nx, ny, c);
-                        ++count;
-                    }
-                }
+            for (int x = 0; x < width; ++x) {
+                horizontalSums[horizontalIndex(x, y, c)] = runningSum;
 
-                img.setPixel(x, y, c, static_cast<unsigned char>(sum / count));
+                const int removeX = x - radius;
+                const int addX = x + radius + 1;
+
+                runningSum -= original.getPixel(removeX, y, c);
+                runningSum += original.getPixel(addX, y, c);
+            }
+        }
+    }
+
+    // Pass 2: vertical sliding window over horizontal sums
+    for (int x = 0; x < width; ++x) {
+        for (int c = 0; c < channels; ++c) {
+            int runningSum = 0;
+
+            for (int ny = -radius; ny <= radius; ++ny) {
+                runningSum += horizontalSums[horizontalIndex(x, std::clamp(ny, 0, height - 1), c)];
+            }
+
+            for (int y = 0; y < height; ++y) {
+                img.setPixel(x, y, c, static_cast<unsigned char>(runningSum / pixelCount));
+
+                const int removeY = y - radius;
+                const int addY = y + radius + 1;
+
+                runningSum -= horizontalSums[horizontalIndex(x, std::clamp(removeY, 0, height - 1), c)];
+                runningSum += horizontalSums[horizontalIndex(x, std::clamp(addY, 0, height - 1), c)];
             }
         }
     }
