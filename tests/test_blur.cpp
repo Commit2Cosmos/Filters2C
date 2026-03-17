@@ -174,6 +174,6 @@ int main() {
     testMedianBlur();
     testMedianBlur3D();
     testBlurOnImage();
-
+    testBlurOnVolume();
     return 0;
 }
