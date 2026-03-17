@@ -25,6 +25,7 @@ namespace helper{
 
     // CUSTOM MEDIAN ALGORITHM: Quickselect
     // O(N) average case for finding a median.
+    // https://www.youtube.com/watch?v=FKvzjLWqoDw
     
     // Rearranges the array such that elements <= pivot are on the left,
     // and elements > pivot are on the right. Returns the final index of the pivot.
