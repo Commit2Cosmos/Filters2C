@@ -20,6 +20,10 @@ protected:
         const Image& image, int ch,
         const Kernel& kernel) const;
 
+    std::vector<float> convolveChannelFused(
+        const Image& image, int ch,
+        const Kernel& kX, const Kernel& kY) const;
+
     virtual std::vector<float> combineResponses(
         const std::vector<float>& respX,
         const std::vector<float>& respY) const;
