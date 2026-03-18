@@ -17,15 +17,21 @@ EmbossFilter::Direction EmbossFilter::parseDirection(const std::string& s) {
 }
 
 EmbossFilter::ColorSpace EmbossFilter::parseColorSpace(const std::string& s) {
-    if (s == "RGB") return ColorSpace::RGB;
     if (s == "Grayscale") return ColorSpace::Grayscale;
     if (s == "HSV") return ColorSpace::HSV;
+    if (s == "HSL") return ColorSpace::HSL;
     throw std::invalid_argument("Unknown colorspace: " + s);
 }
 
 
 EmbossFilter::EmbossFilter(float strength, Direction dir, ColorSpace cs)
-    : ConvFilter(rotateKernel(BASE_NW, static_cast<int>(dir)))
+    : ConvFilter([&]{
+        Kernel k = rotateKernel(BASE_NW, static_cast<int>(dir));
+        for (auto& row : k)
+            for (auto& val : row)
+                val *= strength;
+        return k;
+      }())
     , m_strength(strength)
     , m_colorspace(cs)
 {}
@@ -52,50 +58,44 @@ Kernel EmbossFilter::rotateKernel(const Kernel& k, int turns) {
 
 
 void EmbossFilter::apply(Image& img) {
-    if (m_colorspace != ColorSpace::RGB || img.getChannels() < 3) {
-        ConvFilter::apply(img);
+    if (m_colorspace == ColorSpace::Grayscale || img.getChannels() < 3) {
+        auto results = computeResults(img);
+        for (auto& ch : results)
+            for (auto& v : ch)
+                v += 128.0f;
+        writeResults(img, results);
         return;
     }
 
     const int w = img.getWidth();
     const int h = img.getHeight();
+    const bool useHSL = (m_colorspace == ColorSpace::HSL);
 
-    // Convert RGB to HSV.
-    std::vector<float> hsvData = img.toHSV();
+    // Convert RGB → HSV or HSL
+    std::vector<float> csData = useHSL ? img.toHSL() : img.toHSV();
 
-    // Extract the V channel
+    // Extract intensity channel — V in HSV and L in HSL are both at index 2
     Image vImg(w, h, 1);
-    for (int y = 0; y < h; ++y) {
+    for (int y = 0; y < h; ++y)
         for (int x = 0; x < w; ++x) {
-            float v = hsvData[(y * w + x) * 3 + 2];          // V in [0, 1]
+            float v = csData[(y * w + x) * 3 + 2];   // [0, 1]
             vImg.setPixel(x, y, 0,
                 static_cast<unsigned char>(std::clamp(v * 255.f, 0.f, 255.f)));
         }
-    }
 
-    // Run the kernel on the V channel
-    ConvFilter::apply(vImg);
+    // Filter the intensity channel
+    auto results = computeResults(vImg);
 
-    // Write the processed V values back into the HSV buffer
-    for (int y = 0; y < h; ++y) {
+    // Write biased result back into the float buffer
+    for (int y = 0; y < h; ++y)
         for (int x = 0; x < w; ++x) {
-            float newV = vImg.getPixel(x, y, 0) / 255.f;     // back to [0, 1]
-            hsvData[(y * w + x) * 3 + 2] = newV;
+            float newV = (results[0][y * w + x] + 128.0f) / 255.f;
+            csData[(y * w + x) * 3 + 2] = std::clamp(newV, 0.f, 1.f);
         }
-    }
 
-    // Convert modified HSV back to RGB
-    img.updateFromHSV(hsvData);
-}
-
-std::vector<float> EmbossFilter::combineResponses(
-    const std::vector<float>& respX,
-    const std::vector<float>& /*respY*/) const   // single-kernel filter
-{
-    std::vector<float> result(respX.size());
-    for (size_t i = 0; i < respX.size(); ++i) {
-        float val = respX[i] * m_strength + 128.f;
-        result[i] = std::clamp(val, 0.f, 255.f);
-    }
-    return result;
+    // Convert back to RGB
+    if (useHSL)
+        img.updateFromHSL(csData);
+    else
+        img.updateFromHSV(csData);
 }
