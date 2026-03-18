@@ -3,45 +3,23 @@
 #include "Image.h"
 #include "Volume.h"
 
-#include <algorithm>
+#include <array>
 #include <stdexcept>
-#include <vector>
 
 namespace {
 
-int partition(std::vector<unsigned char>& arr, int left, int right)
+unsigned char findMedianFromHistogram(const std::array<int, 256>& histogram, int targetCount)
 {
-    const unsigned char pivot = arr[right];
-    int i = left;
+    int cumulativeCount = 0;
 
-    for (int j = left; j < right; ++j) {
-        if (arr[j] <= pivot) {
-            std::swap(arr[i], arr[j]);
-            ++i;
+    for (int value = 0; value < 256; ++value) {
+        cumulativeCount += histogram[value];
+        if (cumulativeCount >= targetCount) {
+            return static_cast<unsigned char>(value);
         }
     }
 
-    std::swap(arr[i], arr[right]);
-    return i;
-}
-
-unsigned char quickSelectMedian(std::vector<unsigned char>& arr, int left, int right, int k)
-{
-    if (left == right) {
-        return arr[left];
-    }
-
-    const int pivotIndex = partition(arr, left, right);
-
-    if (k == pivotIndex) {
-        return arr[k];
-    }
-
-    if (k < pivotIndex) {
-        return quickSelectMedian(arr, left, pivotIndex - 1, k);
-    }
-
-    return quickSelectMedian(arr, pivotIndex + 1, right, k);
+    return 255;
 }
 
 } // namespace
@@ -63,26 +41,34 @@ void MedianBlurFilter::apply(Image& img)
     const int height = img.getHeight();
     const int channels = img.getChannels();
     const int radius = kernelSize / 2;
+    const int targetCount = (kernelSize * kernelSize) / 2 + 1;
 
     Image original = img;
 
     for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            for (int channel = 0; channel < channels; ++channel) {
-                std::vector<unsigned char> values;
-                values.reserve(kernelSize * kernelSize);
+        for (int channel = 0; channel < channels; ++channel) {
+            std::array<int, 256> histogram{};
 
-                for (int ny = y - radius; ny <= y + radius; ++ny) {
-                    for (int nx = x - radius; nx <= x + radius; ++nx) {
-                        values.push_back(original.getPixel(nx, ny, channel));
-                    }
+            for (int ny = y - radius; ny <= y + radius; ++ny) {
+                for (int nx = -radius; nx <= radius; ++nx) {
+                    ++histogram[original.getPixel(nx, ny, channel)];
+                }
+            }
+
+            for (int x = 0; x < width; ++x) {
+                img.setPixel(x, y, channel, findMedianFromHistogram(histogram, targetCount));
+
+                if (x == width - 1) {
+                    continue;
                 }
 
-                const int k = static_cast<int>(values.size()) / 2;
-                const unsigned char median =
-                    quickSelectMedian(values, 0, static_cast<int>(values.size()) - 1, k);
+                const int removeX = x - radius;
+                const int addX = x + radius + 1;
 
-                img.setPixel(x, y, channel, median);
+                for (int ny = y - radius; ny <= y + radius; ++ny) {
+                    --histogram[original.getPixel(removeX, ny, channel)];
+                    ++histogram[original.getPixel(addX, ny, channel)];
+                }
             }
         }
     }
@@ -99,29 +85,39 @@ void MedianBlurFilter::apply(Volume& volume)
     const int depth = volume.getDepth();
     const int channels = volume.getChannels();
     const int radius = kernelSize / 2;
+    const int targetCount = (kernelSize * kernelSize * kernelSize) / 2 + 1;
 
     Volume original = volume;
 
     for (int z = 0; z < depth; ++z) {
         for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                for (int channel = 0; channel < channels; ++channel) {
-                    std::vector<unsigned char> values;
-                    values.reserve(kernelSize * kernelSize * kernelSize);
+            for (int channel = 0; channel < channels; ++channel) {
+                std::array<int, 256> histogram{};
+
+                for (int nz = z - radius; nz <= z + radius; ++nz) {
+                    for (int ny = y - radius; ny <= y + radius; ++ny) {
+                        for (int nx = -radius; nx <= radius; ++nx) {
+                            ++histogram[original.getVoxel(nx, ny, nz, channel)];
+                        }
+                    }
+                }
+
+                for (int x = 0; x < width; ++x) {
+                    volume.setVoxel(x, y, z, channel, findMedianFromHistogram(histogram, targetCount));
+
+                    if (x == width - 1) {
+                        continue;
+                    }
+
+                    const int removeX = x - radius;
+                    const int addX = x + radius + 1;
 
                     for (int nz = z - radius; nz <= z + radius; ++nz) {
                         for (int ny = y - radius; ny <= y + radius; ++ny) {
-                            for (int nx = x - radius; nx <= x + radius; ++nx) {
-                                values.push_back(original.getVoxel(nx, ny, nz, channel));
-                            }
+                            --histogram[original.getVoxel(removeX, ny, nz, channel)];
+                            ++histogram[original.getVoxel(addX, ny, nz, channel)];
                         }
                     }
-
-                    const int k = static_cast<int>(values.size()) / 2;
-                    const unsigned char median =
-                        quickSelectMedian(values, 0, static_cast<int>(values.size()) - 1, k);
-
-                    volume.setVoxel(x, y, z, channel, median);
                 }
             }
         }
