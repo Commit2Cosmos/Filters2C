@@ -155,7 +155,7 @@ int main() {
 
     std::cout << "4/4: Generating Median Intensity Projection..." << std::endl;
     Image median_img = Projection::applyMedianIP(vol);
-    median_img.save("build/test_medianIP.png");
+    median_img.save("test_medianIP.png");
 
 
     return 0;
