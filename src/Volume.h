@@ -37,6 +37,7 @@ public:
 
     // Similar to Image::getPixel, but maps (x, y, z) to a 1D index
     unsigned char getVoxel(int x, int y, int z, int channel) const;
+    unsigned char getVoxelRaw1D(int index) const;
     void setVoxel(int x, int y, int z, int channel, unsigned char value);
 };
 
