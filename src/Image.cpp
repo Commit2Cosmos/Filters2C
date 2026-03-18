@@ -51,6 +51,15 @@ unsigned char Image::getPixel(int x, int y, int channel) const {
     return data[index];
 }
 
+
+// Pixel Access
+unsigned char Image::getPixelSimple(int x, int y, int channel) const {
+    // never out of bounds so dont need to clamp
+    
+    int index = (y * width + x) * channels + channel;
+    return data[index];
+}
+
 void Image::setPixel(int x, int y, int channel, unsigned char value) {
     if (x < 0 || x >= width || y < 0 || y >= height || channel < 0 || channel >= channels) {
         return; // Ignore out-of-bounds 
