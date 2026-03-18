@@ -30,9 +30,6 @@ ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) : kernels_({std::move(ker
  * Writes into a separate output buffer before copying back to the image,
  * to prevent already-modified pixels from influencing later convolution reads.
  *
- * For single-kernel filters: directly uses the convolution result.
- * For dual-kernel filters: calls combineResponses() on Gx and Gy results.
- *
  * @param image The image to filter, modified in-place.
  */
 void ConvFilter::apply(Image& image) {
@@ -193,28 +190,6 @@ std::vector<float> ConvFilter::convolveChannelFused(
             }
             result[y * w + x] = std::sqrt(gx * gx + gy * gy);
         }
-    }
-    return result;
-}
-
-
-// ── combineResponses ──────────────────────────────────────────────────────────
-
-/**
- * @brief Combines Gx and Gy response maps into a single output.
- *
- * Default implementation computes gradient magnitude: sqrt(Gx² + Gy²).
- *
- * @param respX Float response map from the Gx kernel.
- * @param respY Float response map from the Gy kernel.
- * @return      Combined float response map, same size as inputs.
- */
-std::vector<float> ConvFilter::combineResponses(
-    const std::vector<float>& respX,
-    const std::vector<float>& respY) const {
-    std::vector<float> result(respX.size());
-    for (size_t i = 0; i < respX.size(); ++i) {
-        result[i] = std::sqrt(respX[i] * respX[i] + respY[i] * respY[i]);
     }
     return result;
 }
