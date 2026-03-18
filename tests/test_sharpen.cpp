@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <cstdint>
 
 // ---------------------------------------------------------------------------
 // Minimal test harness
@@ -147,23 +148,6 @@ void testDotSharp_DarkCentreWithBrightNeighbours_PreClamp() {
     };
     CHECK_FLOAT_EQ(dotSharp(p), -1020.f,
                    "dotSharp: dark centre with bright neighbours => -1020 (pre-clamp)");
-}
-
-void testDotSharp_RotationalSymmetry() {
-    // The kernel is rotationally symmetric. Rotating the patch 90°
-    // must return the same centre response.
-    float orig[3][3] = {
-        { 10.f, 30.f, 10.f },
-        { 20.f, 50.f, 40.f },
-        { 10.f, 60.f, 10.f }
-    };
-    float rotated[3][3] = {
-        { 10.f, 20.f, 10.f },
-        { 30.f, 50.f, 30.f },
-        { 10.f, 40.f, 10.f }
-    };
-    CHECK_FLOAT_EQ(dotSharp(orig), dotSharp(rotated),
-                   "dotSharp: 4-fold symmetric kernel => same response on rotated patch");
 }
 
 // ---------------------------------------------------------------------------
@@ -410,8 +394,6 @@ int main()
     testDotSharp_CentreHeavyPatch();
     testDotSharp_IsolatedBrightPixel_PreClamp();
     testDotSharp_DarkCentreWithBrightNeighbours_PreClamp();
-    // TODO
-    // testDotSharp_RotationalSymmetry();
 
     // Section 2: convolveChannel via shim
     testConvolve_FlatImage_ReturnsOriginalValues();

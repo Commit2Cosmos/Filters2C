@@ -35,4 +35,4 @@ target_link_libraries(APImageFilters PRIVATE APFiltersLib)
 
 enable_testing()
 add_subdirectory(tests)
-include(${CMAKE_SOURCE_DIR}/cmdtests.cmake)
+include(${CMAKE_SOURCE_DIR}/tests/cmdtests.cmake)

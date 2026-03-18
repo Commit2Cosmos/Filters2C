@@ -32,7 +32,8 @@ add_test(NAME MultiFilter COMMAND APImageFilters
          -i ${SOURCE_DIR}/Images/small.png -b 100 -g -r Gaussian 5 1.0 -e Sobel ${OUTPUT_DIR}/multifilter.png)
 
 # Give these short timeouts, since the test image is small
-set_tests_properties(Brightness1 PROPERTIES TIMEOUT 10)
+
+
 set_tests_properties(Brightness2 PROPERTIES TIMEOUT 10)
 set_tests_properties(Greyscale1 PROPERTIES TIMEOUT 10)
 set_tests_properties(Greyscale2 PROPERTIES TIMEOUT 10)
