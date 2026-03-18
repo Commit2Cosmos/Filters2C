@@ -155,7 +155,7 @@ void testBlurOnImage() {
     std::cout << "\nRunning Blur Filters on Image..." << std::endl;
 
     // Replace this path with the actual image path in your repository
-    std::string inputPath = "Images/gracehopper.png";
+    std::string inputPath = "../Images/gracehopper.png";
 
     // Load original image
     Image original(inputPath);
