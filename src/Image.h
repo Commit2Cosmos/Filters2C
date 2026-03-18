@@ -29,8 +29,8 @@ public:
     unsigned char* getData() { return data.data(); }
 
     // Pixel Access
-    // Consider adding boundary checks here to handle the "extend" edge requirement
     unsigned char getPixel(int x, int y, int channel) const;
+    unsigned char getPixelSimple(int x, int y, int channel) const; // no boundary checks
     void setPixel(int x, int y, int channel, unsigned char value);
 
     
