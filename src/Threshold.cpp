@@ -45,7 +45,7 @@ void Threshold::apply(Image& image)
         {
             for (int x = 0; x < width; x++)
             {
-                int pixel = image.getPixel(x, y, 0);
+                int pixel = image.getPixelSimple(x, y, 0);
                 // Binary threshold: above -> white, below -> black
                 pixel = (pixel > thresholdInt) ? 255 : 0;
                 image.setPixel(x, y, 0, pixel);

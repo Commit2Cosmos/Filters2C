@@ -36,9 +36,9 @@ void GrayScale::apply(Image& image)
         for (int x = 0; x < width; x++)
         {
              // Extract RGB components of the current pixel
-            unsigned char r = image.getPixel(x, y, 0);
-            unsigned char g = image.getPixel(x, y, 1);
-            unsigned char b = image.getPixel(x, y, 2);
+            unsigned char r = image.getPixelSimple(x, y, 0);
+            unsigned char g = image.getPixelSimple(x, y, 1);
+            unsigned char b = image.getPixelSimple(x, y, 2);
 
             // Compute grayscale intensity using perceptual weighting
             unsigned char gray = static_cast<unsigned char>(

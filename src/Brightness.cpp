@@ -37,7 +37,7 @@ void Brightness::apply(Image& image)
             for (int c = 0; c < channels; c++)
             {
                 // Get current pixel value
-                int pixel = image.getPixel(x, y, c);
+                int pixel = image.getPixelSimple(x, y, c);
 
                 // Apply brightness adjustment
                 pixel = pixel + value;

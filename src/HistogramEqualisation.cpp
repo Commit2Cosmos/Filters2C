@@ -126,7 +126,7 @@ void HistogramEqualisation::apply(Image& image)
         {
             for (int x = 0; x < width; x++)
             {
-                grayValues.push_back(image.getPixel(x, y, 0));
+                grayValues.push_back(image.getPixelSimple(x, y, 0));
             }
         }
 
@@ -138,7 +138,7 @@ void HistogramEqualisation::apply(Image& image)
         {
             for (int x = 0; x < width; x++)
             {
-                unsigned char oldValue = image.getPixel(x, y, 0);
+                unsigned char oldValue = image.getPixelSimple(x, y, 0);
                 image.setPixel(x, y, 0, lut[oldValue]);
             }
         }
