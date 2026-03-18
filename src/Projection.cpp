@@ -34,15 +34,24 @@ Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
     int channels = volume.getChannels();
     Image result(width, height, channels);
 
+    // pre-calculate the size of one full slice jump
+    int slice_stride = width * height * channels;
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
                 unsigned char max_val = 0;
                 
-                // Find maximum intensity in the z-direction
+                // Calculate starting 1D index once per Z-column
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
+                // Fast memory striding through the Z-direction
                 for (int z = start_z; z <= end_z; ++z) {
-                    unsigned char val = volume.getVoxel(x, y, z, c);
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
                     if (val > max_val) max_val = val;
+                    
+                    current_index += slice_stride; // jump to next slice
                 }
                 result.setPixel(x, y, c, max_val);
             }
@@ -61,15 +70,21 @@ Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
     int channels = volume.getChannels();
     Image result(width, height, channels);
 
+    int slice_stride = width * height * channels;
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                unsigned char min_val = 255; // Start at max possible value
+                unsigned char min_val = 255; 
                 
-                // Find minimum intensity in the z-direction
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    unsigned char val = volume.getVoxel(x, y, z, c);
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
                     if (val < min_val) min_val = val;
+                    
+                    current_index += slice_stride; 
                 }
                 result.setPixel(x, y, c, min_val);
             }
@@ -89,15 +104,19 @@ Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
     Image result(width, height, channels);
 
     int num_slices = (end_z - start_z) + 1;
+    int slice_stride = width * height * channels;
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                unsigned int sum = 0; // Use a larger type to prevent overflow during addition
+                unsigned int sum = 0; 
                 
-                // Find average intensity in the z-direction
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    sum += volume.getVoxel(x, y, z, c);
+                    sum += volume.getVoxelRaw1D(current_index);
+                    current_index += slice_stride;
                 }
                 
                 unsigned char avg_val = static_cast<unsigned char>(sum / num_slices);
@@ -120,18 +139,27 @@ Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
 
     int num_slices = (end_z - start_z) + 1;
     int target_median_count = num_slices / 2; 
+    int slice_stride = width * height * channels; 
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
                 
-                // create 256 bin histogram array, initialised to 0
                 int histogram[256] = {0}; 
                 
-                // count the occurrences of each pixel intensity in the Z-column
+                // Calculate the base 1D index for (x, y, z=0, c) exactly ONCE
+                int base_index = (y * width * channels) + (x * channels) + c;
+                
+                // Calculate the starting index based on z_min
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    unsigned char val = volume.getVoxel(x, y, z, c);
+                    // get raw value, ignoring clamps as we are inside bounds
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
                     histogram[val]++;
+                    
+                    // jump to the same pixel in the next slice
+                    current_index += slice_stride; 
                 }
                 
                 // find the median by accumulating the counts

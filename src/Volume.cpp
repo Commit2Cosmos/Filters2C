@@ -126,6 +126,12 @@ unsigned char Volume::getVoxel(int x, int y, int z, int channel) const {
     return data[index];
 }
 
+
+// Used in projections, skips clamps
+unsigned char Volume::getVoxelRaw1D(int index) const {
+    return data[index];
+}
+
 void Volume::setVoxel(int x, int y, int z, int channel, unsigned char value) {
     // Ignore out-of-bounds writes
     if (x < 0 || x >= width || y < 0 || y >= height || 
