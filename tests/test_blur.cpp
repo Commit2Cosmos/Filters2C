@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <filesystem>
 
 #include "Image.h"
 #include "Volume.h"
@@ -154,11 +155,15 @@ void testMedianBlur3D() {
 void testBlurOnImage() {
     std::cout << "\nRunning Blur Filters on Image..." << std::endl;
 
-    // Replace this path with the actual image path in your repository
-    std::string inputPath = "Images/gracehopper.png";
+    namespace fs = std::filesystem;
 
-    // Load original image
-    Image original(inputPath);
+    fs::path sourceFile = __FILE__;
+    fs::path inputPath = sourceFile.parent_path().parent_path() / "Images" / "gracehopper.png";
+
+    std::cout << "Trying to load: " << inputPath << '\n';
+    std::cout << "Exists? " << fs::exists(inputPath) << '\n';
+
+    Image original(inputPath.string());
 
     // Box blur test
     {
@@ -192,17 +197,27 @@ void testBlurOnImage() {
 void testBlurOnVolume() {
     std::cout << "\nRunning Blur Filters on Volume..." << std::endl;
 
+    namespace fs = std::filesystem;
+
+    // Adjust this depending on where test_blur.cpp lives.
+    // This version assumes test_blur.cpp is in a folder one level below repo root, e.g. tests/
+    fs::path repoRoot = fs::path(__FILE__).parent_path().parent_path();
+    fs::path scansDir = repoRoot / "Scans" / "TestVolume";
+
     std::vector<std::string> filepaths;
     for (int i = 0; i < 32; ++i) {
         char buffer[64];
-        std::snprintf(buffer, sizeof(buffer), "Scans/TestVolume/vol%03d.png", i);
-        filepaths.push_back(buffer);
+        std::snprintf(buffer, sizeof(buffer), "vol%03d.png", i);
+        filepaths.push_back((scansDir / buffer).string());
     }
+
+    std::cout << "First slice: " << filepaths.front() << '\n';
+    std::cout << "Exists? " << fs::exists(filepaths.front()) << '\n';
 
     Volume volume;
     bool loaded = volume.loadFromFiles(filepaths);
     assert(loaded);
-   
+
     {
         Image yzSlice = Slice::extractYZ(volume, 16);
         assert(yzSlice.getWidth() > 0);
