@@ -26,7 +26,7 @@ public:
     int getWidth() const { return width; }
     int getHeight() const { return height; }
     int getChannels() const { return channels; }
-    unsigned char* getData() { return data.data(); }
+    const unsigned char* getData() const { return data.data(); }
 
     // Pixel Access
     unsigned char getPixel(int x, int y, int channel) const;

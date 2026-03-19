@@ -16,13 +16,7 @@ public:
     void apply(Image& image) override;
 
 protected:
-    std::vector<float> convolveChannel(
-        const Image& image, int ch,
-        const Kernel& kernel) const;
-
-    std::vector<float> convolveChannelFused(
-        const Image& image, int ch,
-        const Kernel& kX, const Kernel& kY) const;
+    std::vector<float> convolveChannel(const Image& image, int ch) const;
 
     std::vector<std::vector<float>> computeResults(const Image& image) const;
     void normalise(std::vector<std::vector<float>>& results, float theoreticalMax) const;

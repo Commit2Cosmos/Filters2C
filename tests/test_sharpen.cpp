@@ -44,7 +44,7 @@ class SharpenFilterTest : public SharpenFilter {
 public:
     // Runs the single convolution kernel stored in kernels_[0].
     std::vector<float> runConvolveChannel(const Image& img, int ch) const {
-        return convolveChannel(img, ch, kernels_[0]);
+        return convolveChannel(img, ch);
     }
 };
 
