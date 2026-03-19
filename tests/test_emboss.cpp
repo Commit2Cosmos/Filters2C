@@ -65,7 +65,7 @@ static int g_failCount = 0;
 
 
 // ---------------------------------------------------------------------------
-// Single test-access shim.
+// Test class for accessing rotateKernel method
 // ---------------------------------------------------------------------------
 class EmbossFilterTest {
 public:
@@ -80,11 +80,18 @@ public:
 static void checkKernel(const Kernel& k, const float expected[3][3],
                         const char* label)
 {
+    // Optional but recommended: ensure the kernel is actually 3x3
+    // CHECK_EQ(k.width, 3, "Kernel width must be 3");
+    // CHECK_EQ(k.height, 3, "Kernel height must be 3");
+
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             char msg[64];
             std::snprintf(msg, sizeof(msg), "%s [%d][%d]", label, i, j);
-            CHECK_EQ(k[i][j], expected[i][j], msg);
+            
+            // k.data is 1D, so use [row * width + col]
+            // expected is still 2D, so keep [i][j]
+            CHECK_EQ(k.data[i * k.width + j], expected[i][j], msg);
         }
     }
 }

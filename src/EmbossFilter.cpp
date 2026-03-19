@@ -27,11 +27,13 @@ EmbossFilter::ColorSpace EmbossFilter::parseColorSpace(const std::string& s) {
 EmbossFilter::EmbossFilter(float strength, Direction dir, ColorSpace cs)
     : ConvFilter([&]{
         Kernel k = rotateKernel(BASE_NW, static_cast<int>(dir));
-        for (auto& row : k)
-            for (auto& val : row)
-                val *= strength;
+        
+        for (auto& val : k.data) {
+            val *= strength;
+        }
+        
         return k;
-      }())
+    }())
     , m_strength(strength)
     , m_colorspace(cs)
 {}
@@ -39,17 +41,19 @@ EmbossFilter::EmbossFilter(float strength, Direction dir, ColorSpace cs)
 
 Kernel EmbossFilter::rotateKernel(const Kernel& k, int turns) {
     Kernel k_mod = k;
-    int n = static_cast<int>(k_mod.size());
+    int n = k_mod.width;
     int w = n - 1;
 
     for (int t = 0; t < turns; t++) {
-        for (int i = 0; i <= n/2; i++) {
+        for (int i = 0; i <= n / 2; i++) {
             for (int j = i; j < w - i; j++) {
-                float temp = k_mod[i][j];
-                k_mod[i][j] = k_mod[w-j][i];
-                k_mod[w-j][i] = k_mod[w-i][w-j];
-                k_mod[w-i][w-j] = k_mod[j][w-i];
-                k_mod[j][w-i] = temp;
+                // Convert 2D [row][col] to 1D [row * width + col]
+                float temp = k_mod.data[i * n + j];
+                
+                k_mod.data[i * n + j] = k_mod.data[(w - j) * n + i];
+                k_mod.data[(w - j) * n + i] = k_mod.data[(w - i) * n + (w - j)];
+                k_mod.data[(w - i) * n + (w - j)] = k_mod.data[j * n + (w - i)];
+                k_mod.data[j * n + (w - i)] = temp;
             }
         }
     }

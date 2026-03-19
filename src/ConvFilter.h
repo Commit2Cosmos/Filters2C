@@ -5,7 +5,33 @@
 #include "Image.h"
 #include <vector>
 
-using Kernel = std::vector<std::vector<float>>;
+struct Kernel {
+    std::vector<float> data;
+    int width;
+    int height;
+
+    // Kernel() = default;
+
+    // Can use ConvFilter({{...}, {...}, {...})
+    Kernel(std::initializer_list<std::initializer_list<float>> list) {
+        height = static_cast<int>(list.size());
+        width = (height > 0) ? static_cast<int>(list.begin()->size()) : 0;
+        
+        data.reserve(width * height);
+        for (const auto& row : list) {
+            for (float val : row) {
+                data.push_back(val); // Flattens 2D input into 1D
+            }
+        }
+    }
+    
+    Kernel(const Kernel&) = default;
+    Kernel& operator=(const Kernel&) = default;
+
+    // Move constructor and assignment
+    Kernel(Kernel&&) = default;
+    Kernel& operator=(Kernel&&) = default;
+};
 
 class ConvFilter : public Filter {
 public:
