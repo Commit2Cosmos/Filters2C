@@ -8,31 +8,61 @@
 #include <cstdlib>
 #include <vector>
 
-// ---------------------------------------------------------------------------
-// Minimal test harness
-// ---------------------------------------------------------------------------
 static int g_failCount = 0;
 
-#define CHECK(cond, msg)                                                      \
+// Exact integer/byte equality
+#define CHECK_EQ(a, b, msg)                                                   \
     do {                                                                      \
-        if (!(cond)) {                                                        \
-            std::fprintf(stderr, "FAIL [%s:%d]: %s\n",                       \
-                         __FILE__, __LINE__, msg);                            \
+        auto _a = (a);                                                        \
+        auto _b = (b);                                                        \
+        if (_a != _b) {                                                       \
+            std::fprintf(stderr,                                              \
+                "FAIL [%s:%d]: %s (got %d, expected %d)\n",                  \
+                __FILE__, __LINE__, msg,                                      \
+                static_cast<int>(_a), static_cast<int>(_b));                 \
             ++g_failCount;                                                    \
         }                                                                     \
     } while (0)
 
-#define CHECK_FLOAT_EQ(a, b, msg)                                             \
+// Strict less-than
+#define CHECK_LT(a, b, msg)                                                   \
     do {                                                                      \
-        float _a = static_cast<float>(a);                                     \
-        float _b = static_cast<float>(b);                                     \
-        if (std::fabs(_a - _b) > 1e-4f) {                                    \
+        auto _a = (a);                                                        \
+        auto _b = (b);                                                        \
+        if (!(_a < _b)) {                                                     \
             std::fprintf(stderr,                                              \
-                "FAIL [%s:%d]: %s (got %.4f, expected %.4f)\n",               \
-                __FILE__, __LINE__, msg, _a, _b);                             \
+                "FAIL [%s:%d]: %s (got %d, expected < %d)\n",                \
+                __FILE__, __LINE__, msg,                                      \
+                static_cast<int>(_a), static_cast<int>(_b));                 \
             ++g_failCount;                                                    \
         }                                                                     \
     } while (0)
+
+// Strict greater-than
+#define CHECK_GT(a, b, msg)                                                   \
+    do {                                                                      \
+        auto _a = (a);                                                        \
+        auto _b = (b);                                                        \
+        if (!(_a > _b)) {                                                     \
+            std::fprintf(stderr,                                              \
+                "FAIL [%s:%d]: %s (got %d, expected > %d)\n",                \
+                __FILE__, __LINE__, msg,                                      \
+                static_cast<int>(_a), static_cast<int>(_b));                 \
+            ++g_failCount;                                                    \
+        }                                                                     \
+    } while (0)
+
+// Boolean assertion
+#define CHECK_TRUE(expr, msg)                                                 \
+    do {                                                                      \
+        if (!(expr)) {                                                        \
+            std::fprintf(stderr,                                              \
+                "FAIL [%s:%d]: %s\n",                                        \
+                __FILE__, __LINE__, msg);                                     \
+            ++g_failCount;                                                    \
+        }                                                                     \
+    } while (0)
+
 
 // ---------------------------------------------------------------------------
 // Single test-access shim.
@@ -41,14 +71,6 @@ class EmbossFilterTest {
 public:
     static Kernel rotateKernel(const Kernel& k, int turns) {
         return EmbossFilter::rotateKernel(k, turns);
-    }
-
-    static std::vector<float> combineResponses(
-        const EmbossFilter& f,
-        const std::vector<float>& x,
-        const std::vector<float>& y = {})
-    {
-        return f.combineResponses(x, y);
     }
 };
 
@@ -62,7 +84,7 @@ static void checkKernel(const Kernel& k, const float expected[3][3],
         for (int j = 0; j < 3; ++j) {
             char msg[64];
             std::snprintf(msg, sizeof(msg), "%s [%d][%d]", label, i, j);
-            CHECK_FLOAT_EQ(k[i][j], expected[i][j], msg);
+            CHECK_EQ(k[i][j], expected[i][j], msg);
         }
     }
 }
@@ -120,34 +142,6 @@ void testRotateKernel_FourTurnsIsIdentity() {
 }
 
 // ---------------------------------------------------------------------------
-// combineResponses tests
-// ---------------------------------------------------------------------------
-
-void testCombineResponses_PositiveResponse() {
-    EmbossFilter f(1.0f, EmbossFilter::NW);
-    auto result = EmbossFilterTest::combineResponses(f, { 50.f, 100.f, 127.f });
-    CHECK_FLOAT_EQ(result[0], 178.f, "combineResponses:  50 + 128 == 178");
-    CHECK_FLOAT_EQ(result[1], 228.f, "combineResponses: 100 + 128 == 228");
-    CHECK_FLOAT_EQ(result[2], 255.f, "combineResponses: 127 + 128 clamped to 255");
-}
-
-void testCombineResponses_Clamping() {
-    EmbossFilter f(1.0f, EmbossFilter::NW);
-    auto result = EmbossFilterTest::combineResponses(f, { 200.f, -200.f });
-    CHECK(result[0] <= 255.f, "combineResponses: upper clamp <= 255");
-    CHECK(result[1] >= 0.f,   "combineResponses: lower clamp >= 0");
-}
-
-void testCombineResponses_MultiplePixels() {
-    EmbossFilter f(1.0f, EmbossFilter::NW);
-    auto result = EmbossFilterTest::combineResponses(f, { -10.f, 0.f, 10.f });
-    CHECK(result.size() == 3,  "combineResponses: output size matches input");
-    CHECK_FLOAT_EQ(result[0], 118.f, "combineResponses multi: -10 + 128 == 118");
-    CHECK_FLOAT_EQ(result[1], 128.f, "combineResponses multi:   0 + 128 == 128");
-    CHECK_FLOAT_EQ(result[2], 138.f, "combineResponses multi:  10 + 128 == 138");
-}
-
-// ---------------------------------------------------------------------------
 // Analytical kernel convolution helper
 // ---------------------------------------------------------------------------
 
@@ -165,57 +159,72 @@ void testKernelDotProduct_FlatPatch() {
         { 100.f, 100.f, 100.f },
         { 100.f, 100.f, 100.f }
     };
-    CHECK_FLOAT_EQ(dotNW(patch), 0.f, "dotNW: flat patch => 0");
+    CHECK_EQ(dotNW(patch), 0.f, "dotNW: flat patch => 0");
 }
 
-// ---------------------------------------------------------------------------
-// Analytical 3×3 image tests
-// ---------------------------------------------------------------------------
-//
-// Synthetic image — a linear ramp:
-//
-//   0  1  2
-//   3  4  5
-//   6  7  8
-//
-// NW kernel dot-product at the centre pixel (1,1):
-//
-//   (-2×0)+(-1×1)+(0×2) + (-1×3)+(0×4)+(1×5) + (0×6)+(1×7)+(2×8)
-//   =  0  −  1  + 0    +  −3  + 0  + 5     +   0  + 7  + 16   = 24
-//
-// After the +128 bias:  24 + 128 = 152.
-//
-// The SE kernel is the 180° rotation of NW, so its dot-product on the
-// same patch is exactly −24, giving −24 + 128 = 104.
+void testApply_FlatImage_OutputIs128() {
+    // All pixels identical → G*I = 0 everywhere → output = 0 + 128 = 128.
+    Image img(5, 5, 1);
+    for (int y = 0; y < 5; ++y)
+        for (int x = 0; x < 5; ++x)
+            img.setPixel(x, y, 0, 100);
 
-static const float RAMP_3X3[3][3] = {
-    { 0.f, 1.f, 2.f },
-    { 3.f, 4.f, 5.f },
-    { 6.f, 7.f, 8.f }
-};
+    EmbossFilter f(1.0f, EmbossFilter::Direction::NW, EmbossFilter::ColorSpace::Grayscale);
+    f.apply(img);
 
-void testAnalytical3x3Image_NW() {
-    const float response = dotNW(RAMP_3X3);
-    CHECK_FLOAT_EQ(response, 24.f, "analytical ramp: NW centre dot == 24");
-
-    EmbossFilter f(1.0f, EmbossFilter::NW);
-    auto out = EmbossFilterTest::combineResponses(f, { response });
-    CHECK_FLOAT_EQ(out[0], 152.f, "analytical ramp: NW emboss centre == 152");
+    for (int y = 0; y < 5; ++y)
+        for (int x = 0; x < 5; ++x)
+            CHECK_EQ(img.getPixel(x, y, 0), 128, "flat image: every pixel must be 128");
 }
 
-void testAnalytical3x3Image_SE() {
-    // SE is the point-reflection of NW; response on the ramp is −24.
-    EmbossFilter f(1.0f, EmbossFilter::SE);
-    auto out = EmbossFilterTest::combineResponses(f, { -24.f });
-    CHECK_FLOAT_EQ(out[0], 104.f, "analytical ramp: SE emboss centre == 104");
+void testApply_NegativeResponse_PixelBelow128() {
+    // Top-left = 25, everything else = 0.
+    // Expected: -2*25 = -50 -> clamp(-50 + 128, 0, 255) = 78
+    Image img(3, 3, 1);
+    for (int y = 0; y < 3; ++y)
+        for (int x = 0; x < 3; ++x)
+            img.setPixel(x, y, 0, 0);
+    img.setPixel(0, 0, 0, 25);   // top-left only
+
+    EmbossFilter f(1.0f, EmbossFilter::Direction::NW, EmbossFilter::ColorSpace::Grayscale);
+    f.apply(img);
+
+    unsigned char centre = img.getPixel(1, 1, 0);
+    CHECK_EQ(centre, 78, "negative response must give 78, not 128");
 }
 
-void testAnalytical3x3Image_FlatImage() {
-    // Zero contrast → zero convolution response → output is mid-grey (128).
-    EmbossFilter f(1.0f, EmbossFilter::NW);
-    auto out = EmbossFilterTest::combineResponses(f, { 0.f });
-    CHECK_FLOAT_EQ(out[0], 128.f, "analytical flat: zero response => mid-grey 128");
+void testApply_PositiveResponse_PixelAbove128() {
+    // Bottom-right = 25, everything else = 0.
+    // dotNW = +2*25 = +50 -> clamp(50 + 128, 0, 255) = 178
+    Image img(3, 3, 1);
+    for (int y = 0; y < 3; ++y)
+        for (int x = 0; x < 3; ++x)
+            img.setPixel(x, y, 0, 0);
+    img.setPixel(2, 2, 0, 25);   // bottom-right only
+
+    EmbossFilter f(1.0f, EmbossFilter::Direction::NW, EmbossFilter::ColorSpace::Grayscale);
+    f.apply(img);
+
+    unsigned char centre = img.getPixel(1, 1, 0);
+    CHECK_EQ(centre, 178, "positive response must give 178");
 }
+
+void testApply_StrengthScalesAroundBias() {
+    // dotNW = -50 at centre
+    // With strength = 2: clamp(2*-50 + 128, 0, 255) = clamp(28, 0, 255) = 28
+    Image img(3, 3, 1);
+    for (int y = 0; y < 3; ++y)
+        for (int x = 0; x < 3; ++x)
+            img.setPixel(x, y, 0, 0);
+    img.setPixel(0, 0, 0, 25);
+
+    EmbossFilter f(2.0f, EmbossFilter::Direction::NW, EmbossFilter::ColorSpace::Grayscale);
+    f.apply(img);
+
+    CHECK_EQ(img.getPixel(1, 1, 0), 28, "strength=2: centre must be 28");
+}
+
+
 
 // ---------------------------------------------------------------------------
 // main
@@ -228,15 +237,11 @@ int main()
     testRotateKernel_ThreeTurns();
     testRotateKernel_FourTurnsIsIdentity();
 
-    testCombineResponses_PositiveResponse();
-    testCombineResponses_Clamping();
-    testCombineResponses_MultiplePixels();
-
     testKernelDotProduct_FlatPatch();
-
-    testAnalytical3x3Image_NW();
-    testAnalytical3x3Image_SE();
-    testAnalytical3x3Image_FlatImage();
+    testApply_FlatImage_OutputIs128();
+    testApply_NegativeResponse_PixelBelow128();
+    testApply_PositiveResponse_PixelAbove128();
+    testApply_StrengthScalesAroundBias();
 
     if (g_failCount > 0) {
         std::fprintf(stderr, "\n%d test(s) FAILED.\n", g_failCount);

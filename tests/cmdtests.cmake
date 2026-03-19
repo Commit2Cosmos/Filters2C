@@ -27,7 +27,9 @@ add_test(NAME SaltPepper75 COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.
 add_test(NAME ThresholdHSV128 COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png --threshold 128 HSV ${OUTPUT_DIR}/threshold1.png)
 add_test(NAME ThresholdHSL64 COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png -t 64 HSL ${OUTPUT_DIR}/threshold2.png)
 add_test(NAME EmbossNW COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png --emboss 2.5 NW HSV ${OUTPUT_DIR}/embossNW.png)
-add_test(NAME EmbossSE COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png -m 3.5 NW HSV ${OUTPUT_DIR}/embossSE.png)
+add_test(NAME EmbossSE COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png -m 3.5 SE HSV ${OUTPUT_DIR}/embossSE.png)
+add_test(NAME EmbossNW9 COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png -m 9.0 NW HSV ${OUTPUT_DIR}/embossNW9.png)
+add_test(NAME EmbossNW0 COMMAND APImageFilters -i ${SOURCE_DIR}/Images/small.png -m 0.0 NW HSV ${OUTPUT_DIR}/embossNW0.png)
 add_test(NAME MultiFilter COMMAND APImageFilters
          -i ${SOURCE_DIR}/Images/small.png -b 100 -g -r Gaussian 5 1.0 -e Sobel ${OUTPUT_DIR}/multifilter.png)
 
@@ -54,6 +56,8 @@ set_tests_properties(ThresholdHSV128 PROPERTIES TIMEOUT 10)
 set_tests_properties(ThresholdHSL64 PROPERTIES TIMEOUT 10)
 set_tests_properties(EmbossNW PROPERTIES TIMEOUT 10)
 set_tests_properties(EmbossSE PROPERTIES TIMEOUT 10)
+set_tests_properties(EmbossNW9 PROPERTIES TIMEOUT 10)
+set_tests_properties(EmbossNW0 PROPERTIES TIMEOUT 10)
 set_tests_properties(MultiFilter PROPERTIES TIMEOUT 60)
 
 ### TEST CORE VOLUME PROCESSING FUNCTIONALITY ###

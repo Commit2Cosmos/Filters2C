@@ -230,8 +230,11 @@ int main(int argc, char* argv[]) {
 
         // ── Emboss ─────────────────────────────────────────────────────────
         } else if (a == "-m" || a == "--emboss") {
-            float       strength   = std::stof(args[++i]);
-            std::string direction  = args[++i];
+            float strength   = std::stof(args[++i]);
+            if (strength < 0.0f || strength > 10.0f) {
+                throw std::invalid_argument("Emboss strength must be in range [0, 10]");
+            }
+            std::string direction = args[++i];
             std::string colorspace = "HSV";
             if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
             if (!isVolumeMode) {

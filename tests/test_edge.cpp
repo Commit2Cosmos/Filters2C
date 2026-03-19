@@ -92,17 +92,23 @@ static bool checkPixels(const Image& img, const unsigned char expected[9],
 // pixels that use clamped neighbours), then magnitude = sqrt(Gx² + Gy²),
 // then normalised the entire output so max maps to 255.
 //
+// Normalisation: each filter uses a fixed theoretical maximum rather than
+// the dynamic max of the output.  theoreticalMax = sqrt(2) * filterAxisMax,
+// where filterAxisMax is the largest possible single-axis (Gx or Gy) response
+// for a fully-saturated (255) input.  scale = 255 / theoreticalMax.
+//
 // ── Sobel ────────────────────────────────────────────────────────────────
 //   Gx:              Gy:                Magnitude (raw):
 //   200  400  200    -200 -200 -200     282.8  447.2  282.8
 //   200  400  200    -400 -400 -400     447.2  565.7  447.2
 //   200  400  200    -200 -200 -200     282.8  447.2  282.8
 //
-//   max = 565.685,  scale = 255 / 565.685
-//   Normalised (unsigned char):
-//     127  201  127
-//     201  255  201
-//     127  201  127
+//   SOBEL_AXIS_MAX = 4*255 = 1020
+//   theoreticalMax = sqrt(2) * 1020 = 1442.5,  scale = 255 / 1442.5 = 0.17678
+//   Normalised (unsigned char, truncated):
+//      50   79   50
+//      79  100   79
+//      50   79   50
 //
 // ── Prewitt ──────────────────────────────────────────────────────────────
 //   Gx:              Gy:                Magnitude (raw):
@@ -110,11 +116,12 @@ static bool checkPixels(const Image& img, const unsigned char expected[9],
 //   150  300  150    -300 -300 -300     335.4  424.3  335.4
 //   150  300  150    -150 -150 -150     212.1  335.4  212.1
 //
-//   max = 424.264,  scale = 255 / 424.264
+//   PREWITT_AXIS_MAX = 3*255 = 765
+//   theoreticalMax = sqrt(2) * 765 = 1081.9,  scale = 255 / 1081.9 = 0.23570
 //   Normalised:
-//     127  201  127
-//     201  254  201      (254 due to float truncation)
-//     127  201  127
+//      49   79   49
+//      79   99   79
+//      49   79   49
 //
 // ── Scharr ───────────────────────────────────────────────────────────────
 //   Gx:               Gy:                 Magnitude (raw):
@@ -122,11 +129,12 @@ static bool checkPixels(const Image& img, const unsigned char expected[9],
 //    800  1600  800   -1600 -1600 -1600   1788.9  2262.7  1788.9
 //    800  1600  800   -800  -800  -800    1131.4  1788.9  1131.4
 //
-//   max = 2262.742,  scale = 255 / 2262.742
+//   SCHARR_AXIS_MAX = 16*255 = 4080
+//   theoreticalMax = sqrt(2) * 4080 = 5770.0,  scale = 255 / 5770.0 = 0.04419
 //   Normalised:
-//     127  201  127
-//     201  255  201
-//     127  201  127
+//      50   79   50
+//      79  100   79
+//      50   79   50
 //
 // ── Roberts Cross ────────────────────────────────────────────────────────
 //   G1 (diagonal ↘):    G2 (diagonal ↙):   Magnitude (raw):
@@ -134,11 +142,12 @@ static bool checkPixels(const Image& img, const unsigned char expected[9],
 //    50     0    0       50  100  100        70.7  100.0  100.0
 //    50     0    0       50  100  100        70.7  100.0  100.0
 //
-//   max = 100.0,  scale = 255 / 100 = 2.55
+//   ROBERTS_AXIS_MAX = 1*255 = 255
+//   theoreticalMax = sqrt(2) * 255 = 360.6,  scale = 255 / 360.6 = 0.70711
 //   Normalised:
-//       0  180  180
-//     180  254  254      (254 due to float truncation: 100*2.55=254.999...)
-//     180  254  254
+//       0   50   50
+//      50   70   70
+//      50   70   70
 //
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -155,9 +164,9 @@ static int runUnitTests() {
     // ── Sobel ────────────────────────────────────────────────────────────
     {
         const unsigned char expected[9] = {
-            127, 201, 127,
-            201, 255, 201,
-            127, 201, 127,
+             50,  79,  50,
+             79, 100,  79,
+             50,  79,  50,
         };
         Image img = make3x3(input);
         SobelFilter sobel;
@@ -170,9 +179,9 @@ static int runUnitTests() {
     // ── Prewitt ──────────────────────────────────────────────────────────
     {
         const unsigned char expected[9] = {
-            127, 201, 127,
-            201, 254, 201,
-            127, 201, 127,
+             49,  79,  49,
+             79,  99,  79,
+             49,  79,  49,
         };
         Image img = make3x3(input);
         PrewittFilter prewitt;
@@ -185,9 +194,9 @@ static int runUnitTests() {
     // ── Scharr ───────────────────────────────────────────────────────────
     {
         const unsigned char expected[9] = {
-            127, 201, 127,
-            201, 255, 201,
-            127, 201, 127,
+             50,  79,  50,
+             79, 100,  79,
+             50,  79,  50,
         };
         Image img = make3x3(input);
         ScharrFilter scharr;
@@ -200,9 +209,9 @@ static int runUnitTests() {
     // ── Roberts Cross ────────────────────────────────────────────────────
     {
         const unsigned char expected[9] = {
-              0, 180, 180,
-            180, 254, 254,
-            180, 254, 254,
+              0,  50,  50,
+             50,  70,  70,
+             50,  70,  70,
         };
         Image img = make3x3(input);
         RobertsCrossFilter roberts;
@@ -232,9 +241,9 @@ static int runUnitTests() {
 
         // After apply, image should be 1 channel (converted internally)
         const unsigned char expected[9] = {
-            127, 201, 127,
-            201, 255, 201,
-            127, 201, 127,
+             50,  79,  50,
+             79, 100,  79,
+             50,  79,  50,
         };
 
         bool pass = (rgb.getChannels() == 1);
