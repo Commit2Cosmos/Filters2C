@@ -1,55 +1,90 @@
 #include "Brightness.h"
 #include "Image.h"
+#include <stdexcept>
+#include <string>
 
 Brightness::Brightness(int v)
+    : value(v), autoMode(false)
 {
-    value = v;
+}
+
+Brightness::Brightness(const std::string& mode)
+    : value(0), autoMode(false)
+{
+    if (mode == "auto")
+    {
+        autoMode = true;
+    }
+    else
+    {
+        value = std::stoi(mode);
+    }
 }
 
 /**
  * @brief Apply brightness adjustment to an image.
  *
- * This function iterates over every pixel and every channel in the image,
- * adding a constant offset (value) to each pixel intensity.
+ * If constructed with a numeric value, this value is added to each pixel.
+ * If constructed with "auto", a simple automatic adjustment is computed
+ * from the average image intensity so that darker images are brightened
+ * and brighter images are darkened slightly toward a mid-level target.
  *
- * To ensure valid pixel values, the result is clamped to the range [0, 255],
- * which is the standard range for 8-bit image channels.
- *
- * The operation is performed in-place, meaning the input image is modified directly.
+ * The operation is performed in-place.
  *
  * @param image Reference to the Image object to be modified.
- *
- * Time Complexity: O(width × height × channels)
  */
 void Brightness::apply(Image& image)
 {
-    // Retrieve image properties
     int width = image.getWidth();
     int height = image.getHeight();
     int channels = image.getChannels();
 
-    // Loop over all pixels
+    int adjustment = value;
+
+    // Auto brightness mode:
+    // compute average intensity and shift it toward a target value.
+    if (autoMode)
+    {
+        long long sum = 0;
+        int count = width * height * channels;
+
+        if (count == 0)
+            return;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int c = 0; c < channels; c++)
+                {
+                    sum += image.getPixelSimple(x, y, c);
+                }
+            }
+        }
+
+        int average = static_cast<int>(sum / count);
+
+        // Target a mid-level brightness
+        const int target = 128;
+        adjustment = target - average;
+    }
+
+    // Apply brightness adjustment
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            // Loop over all colour channels (e.g., RGB)
             for (int c = 0; c < channels; c++)
             {
-                // Get current pixel value
                 int pixel = image.getPixelSimple(x, y, c);
+                pixel += adjustment;
 
-                // Apply brightness adjustment
-                pixel = pixel + value;
-
-                // Clamp result to valid 8-bit range [0, 255]
                 if (pixel > 255)
                     pixel = 255;
                 if (pixel < 0)
                     pixel = 0;
 
-                // Write adjusted value back to the image
-                image.setPixel(x, y, c, pixel);
+                image.setPixel(x, y, c, static_cast<unsigned char>(pixel));
             }
         }
     }
