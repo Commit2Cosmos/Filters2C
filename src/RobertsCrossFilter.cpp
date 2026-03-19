@@ -10,9 +10,12 @@ RobertsCrossFilter::RobertsCrossFilter()
          { -1, 0 }})
 {}
 
+static constexpr float ROBERTS_AXIS_MAX = 1.f * 255.f;
+
 void RobertsCrossFilter::apply(Image& image) {
     if (image.getChannels() > 1) image.toGrayscale();
     auto results = computeResults(image);
-    normalise(results);
+    float theoreticalMax = getTheoreticalMax(ROBERTS_AXIS_MAX);
+    normalise(results, theoreticalMax);
     writeResults(image, results);
 }

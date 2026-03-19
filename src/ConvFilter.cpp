@@ -60,6 +60,11 @@ std::vector<std::vector<float>> ConvFilter::computeResults(const Image& image) c
 }
 
 
+float ConvFilter::getTheoreticalMax(float filterMax) const {
+    return sqrt(2.f * filterMax * filterMax);
+}
+
+
 // ── normalise ────────────────────────────────────────────────────────────────
 
 /**
@@ -68,15 +73,8 @@ std::vector<std::vector<float>> ConvFilter::computeResults(const Image& image) c
  * Call this on the output of computeResults() before writeResults()
  * to ensure large-weight kernels (e.g. Scharr) don't saturate.
  */
-void ConvFilter::normalise(std::vector<std::vector<float>>& results) const {
-    float maxVal = 0.0f;
-    for (auto& ch : results)
-        for (auto v : ch)
-            if (v > maxVal) maxVal = v;
-
-    if (maxVal <= 0.0f) return;
-
-    float scale = 255.0f / maxVal;
+void ConvFilter::normalise(std::vector<std::vector<float>>& results, float theoreticalMax) const {
+    float scale = 255.0f / theoreticalMax;
     for (auto& ch : results)
         for (auto& v : ch)
             v *= scale;

@@ -12,9 +12,12 @@ ScharrFilter::ScharrFilter()
          {  3,  10,  3 }})
 {}
 
+static constexpr float SCHARR_AXIS_MAX = 16.f * 255.f;
+
 void ScharrFilter::apply(Image& image) {
     if (image.getChannels() > 1) image.toGrayscale();
     auto results = computeResults(image);
-    normalise(results);
+    float theoreticalMax = getTheoreticalMax(SCHARR_AXIS_MAX);
+    normalise(results, theoreticalMax);
     writeResults(image, results);
 }

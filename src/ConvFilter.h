@@ -25,11 +25,12 @@ protected:
         const Kernel& kX, const Kernel& kY) const;
 
     std::vector<std::vector<float>> computeResults(const Image& image) const;
-    void normalise(std::vector<std::vector<float>>& results) const;
+    void normalise(std::vector<std::vector<float>>& results, float theoreticalMax) const;
     void writeResults(Image& image, const std::vector<std::vector<float>>& results) const;
 
     std::vector<Kernel> kernels_;
-
+    
+    virtual float getTheoreticalMax(float filterMax) const;
 };
 
 #endif
