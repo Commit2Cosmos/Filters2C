@@ -4,8 +4,7 @@
 #include <cctype> // for std::isdigit
 #include "stb_image.h"
 
-
-namespace helper{
+namespace {
     // extracts the LAST number from the filename and returns it as an integer
     // done this way so can work with filepaths that include folders with numbers in. e.g. folder1/scan2.png
     int extractSliceNumber(const std::string& str) {
@@ -32,7 +31,7 @@ namespace helper{
         std::string path;
         int index;
     };
-}
+} // namespace
 
 
 // Constructors
@@ -52,15 +51,15 @@ bool Volume::loadFromFiles(const std::vector<std::string>& filepaths) {
     }
 
     // Pre-compute the slice numbers once per file (O(N) parsing)
-    std::vector<helper::FileNode> nodes;
+    std::vector<FileNode> nodes;
     nodes.reserve(filepaths.size());  // reserve memory rather than dynamically resizing
     for (const auto& path : filepaths) {
-        nodes.push_back({path, helper::extractSliceNumber(path)});
+        nodes.push_back({path, extractSliceNumber(path)});
     }
 
     // CUSTOM NATURAL INSERTION SORT
     for (size_t i = 1; i < nodes.size(); ++i) {
-        helper::FileNode key = nodes[i];
+        FileNode key = nodes[i];
         int j = i - 1;
 
         // Compare the pre-extracted integers directly

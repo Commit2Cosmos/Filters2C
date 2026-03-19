@@ -2,8 +2,7 @@
 #include <iostream>
 #include <algorithm> // Only for std::clamp (allowed) and std::swap
 
-// Local Helper Functions
-namespace helper{
+namespace {
 
     // Helper to validate and convert 1-based user indices to 0-based volume indices
     void getZBounds(int depth, int z_min, int z_max, int& out_start, int& out_end) {
@@ -22,12 +21,12 @@ namespace helper{
         if (out_start > out_end) std::swap(out_start, out_end);
     }
 
-}
+} // namespace
 
 // --- Maximum Intensity Projection ---
 Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -63,7 +62,7 @@ Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
 // --- Minimum Intensity Projection ---
 Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -96,7 +95,7 @@ Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
 // --- Mean Intensity Projection ---
 Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -130,7 +129,7 @@ Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
 // --- Median Intensity Projection ---
 Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
