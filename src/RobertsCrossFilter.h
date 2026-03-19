@@ -12,7 +12,14 @@
  */
 class RobertsCrossFilter : public ConvFilter {
 public:
+    /**
+     * @brief Construct a Roberts' Cross edge detector.
+     */
     RobertsCrossFilter();
+    /**
+     * @brief Apply Roberts' Cross edge detection to an image.
+     * @param image Image to modify.
+     */
     void apply(Image& image) override;
 };
 

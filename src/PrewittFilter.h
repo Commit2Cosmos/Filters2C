@@ -12,7 +12,14 @@
  */
 class PrewittFilter : public ConvFilter {
 public:
+    /**
+     * @brief Construct a Prewitt edge detector.
+     */
     PrewittFilter();
+    /**
+     * @brief Apply Prewitt edge detection to an image.
+     * @param image Image to modify.
+     */
     void apply(Image& image) override;
 };
 

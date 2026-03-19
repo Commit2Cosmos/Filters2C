@@ -4,62 +4,130 @@
 #include <vector>
 #include <string>
 
+/**
+ * @class Image
+ * @brief Stores and manipulates a 2-D image in interleaved channel format.
+ *
+ * The class owns pixel memory, supports loading and saving image files, and
+ * provides helper methods used by the filter pipeline.
+ */
 class Image {
 private:
+    /// Image width in pixels.
     int width;
+    /// Image height in pixels.
     int height;
-    int channels; // e.g., 1 for Grayscale, 3 for RGB, 4 for RGBA
-    std::vector<unsigned char> data; // Stores the raw pixel data
+    /// Number of channels per pixel, for example 1, 3, or 4.
+    int channels;
+    /// Raw interleaved pixel buffer in row-major order.
+    std::vector<unsigned char> data;
 
 public:
-    // Constructors & Destructor
+    /**
+     * @brief Construct an empty image.
+     */
     Image();
+    /**
+     * @brief Construct a blank image of the requested size.
+     * @param w Image width in pixels.
+     * @param h Image height in pixels.
+     * @param c Number of channels per pixel.
+     */
     Image(int w, int h, int c);
-    Image(const std::string& filepath); // Uses stb_image to load
+    /**
+     * @brief Construct an image by loading it from disk.
+     * @param filepath Path to the source image file.
+     */
+    Image(const std::string& filepath);
     ~Image() = default;
 
-    // File I/O
+    /**
+     * @brief Load image data from a file.
+     * @param filepath Path to the source image file.
+     * @return True on success, false if loading fails.
+     */
     bool load(const std::string& filepath);
-    bool save(const std::string& filepath) const; // Uses stb_image_write
+    /**
+     * @brief Save image data to a file.
+     * @param filepath Output path, written using stb_image_write.
+     * @return True on success, false if writing fails.
+     */
+    bool save(const std::string& filepath) const;
 
-    // Getters
+    /// @return Image width in pixels.
     int getWidth() const { return width; }
+    /// @return Image height in pixels.
     int getHeight() const { return height; }
+    /// @return Number of channels per pixel.
     int getChannels() const { return channels; }
+    /// @return Read-only pointer to the raw pixel buffer.
     const unsigned char* getData() const { return data.data(); }
-    // Read/write for optimisations
+    /// @return Writable pointer to the raw pixel buffer for performance-critical code.
     unsigned char* getDataUnsafe() { return data.data(); }
 
-    // Pixel Access (no boundary checks)
+    /**
+     * @brief Read a pixel component without bounds checking.
+     * @param x X-coordinate in pixels.
+     * @param y Y-coordinate in pixels.
+     * @param channel Channel index within the pixel.
+     * @return Requested channel value.
+     */
     inline unsigned char getPixelSimple(int x, int y, int channel) const {
         return data[(y * width + x) * channels + channel];
     } 
 
-    // Pixel Access (clamping for "extend" strategy)
+    /**
+     * @brief Read a pixel component using clamped border handling.
+     * @param x X-coordinate in pixels.
+     * @param y Y-coordinate in pixels.
+     * @param channel Channel index within the pixel.
+     * @return Requested channel value after clamping coordinates.
+     */
     inline unsigned char getPixel(int x, int y, int channel) const {
         x = std::clamp(x, 0, width - 1);  
         y = std::clamp(y, 0, height - 1);
         return data[(y * width + x) * channels + channel];
     }
 
-    // Pixel Setter
+    /**
+     * @brief Write one channel of one pixel if the coordinates are in range.
+     * @param x X-coordinate in pixels.
+     * @param y Y-coordinate in pixels.
+     * @param channel Channel index within the pixel.
+     * @param value New 8-bit value.
+     */
     inline void setPixel(int x, int y, int channel, unsigned char value) {
         if (x < 0 || x >= width || y < 0 || y >= height || channel < 0 || channel >= channels) return;
         data[(y * width + x) * channels + channel] = value;
     }
     
-    // --- Color Space Conversions ---
-
-    // Converts the current image to Grayscale (1 channel)
-    // Must drop the Alpha channel if it exists 
+    /**
+     * @brief Convert the stored data to a single-channel grayscale image.
+     *
+     * Alpha is discarded if present.
+     */
     void toGrayscale(); 
 
-    // Note: HSV values often require floats (H: 0-360, S: 0.0-1.0, V: 0.0-1.0).
-    std::vector<float> toHSV() const; // return a separate vector of floats rather than overwriting
-    std::vector<float> toHSL() const; // return a separate vector of floats rather than overwriting
+    /**
+     * @brief Convert RGB image data to HSV triplets.
+     * @return Separate floating-point buffer storing H, S, and V for each pixel.
+     */
+    std::vector<float> toHSV() const;
+    /**
+     * @brief Convert RGB image data to HSL triplets.
+     * @return Separate floating-point buffer storing H, S, and L for each pixel.
+     */
+    std::vector<float> toHSL() const;
 
-    // Takes modified HSV data and updates the Image's RGB unsigned char data
+    /**
+     * @brief Replace RGB data with values converted back from HSV.
+     * @param hsvData Flattened H, S, V triplets for every pixel.
+     */
     void updateFromHSV(const std::vector<float>& hsvData);
+    /**
+     * @brief Replace RGB data with values converted back from HSL.
+     * @param hslData Flattened H, S, L triplets for every pixel.
+     */
     void updateFromHSL(const std::vector<float>& hslData);
 };
 

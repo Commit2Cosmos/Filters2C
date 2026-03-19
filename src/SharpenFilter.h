@@ -12,6 +12,9 @@
  */
 class SharpenFilter : public ConvFilter {
 public:
+    /**
+     * @brief Construct a sharpening filter.
+     */
     SharpenFilter();
 };
 
