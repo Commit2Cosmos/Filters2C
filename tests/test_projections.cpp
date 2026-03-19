@@ -99,64 +99,10 @@ void testMedianIP() {
 }
 
 int main() {
-    std::cout << "Running Projection Tests..." << std::endl;
     testMaxIP();
     testMinIP();
     testMeanIP();
     testMedianIP();
-
-    std::string folder_path = "Scans/TestVolume";  // UPDATED HERE
-    std::vector<std::string> filepaths;
-
-    std::cout << "Scanning directory: " << folder_path << "..." << std::endl;
-
-    // Read all files from the directory
-    if (!fs::exists(folder_path) || !fs::is_directory(folder_path)) {
-        std::cerr << "Error: Directory does not exist! Please ensure you are running this from the correct folder." << std::endl;
-        return 1;
-    }
-
-    for (const auto& entry : fs::directory_iterator(folder_path)) {
-        if (entry.is_regular_file()) {
-            filepaths.push_back(entry.path().string());
-        }
-    }
-
-    if (filepaths.empty()) {
-        std::cerr << "Error: No files found in " << folder_path << std::endl;
-        return 1;
-    }
-
-    std::cout << "Found " << filepaths.size() << " files. Loading volume (This will automatically sort them)..." << std::endl;
-
-    // Load the Volume
-    Volume vol;
-    if (!vol.loadFromFiles(filepaths)) {
-        std::cerr << "Error: Failed to load volume." << std::endl;
-        return 1;
-    }
-
-    std::cout << "Dimensions: " << vol.getWidth() << "x" << vol.getHeight() << "x" << vol.getDepth() << " with " << vol.getChannels() << " channels." << std::endl;
-
-    // Perform and Save Projections
-    // Note: We use the default -1 for z_max to process the entire volume
-
-    std::cout << "1/4: Generating Maximum Intensity Projection..." << std::endl;
-    Image max_img = Projection::applyMaxIP(vol);
-    max_img.save("test_maxIP.png"); // Assuming Image.h has a save() method using stbi_write_png
-
-    std::cout << "2/4: Generating Minimum Intensity Projection..." << std::endl;
-    Image min_img = Projection::applyMinIP(vol);
-    min_img.save("test_minIP.png");
-
-    std::cout << "3/4: Generating Mean Intensity Projection..." << std::endl;
-    Image mean_img = Projection::applyMeanIP(vol);
-    mean_img.save("test_meanIP.png");
-
-    std::cout << "4/4: Generating Median Intensity Projection..." << std::endl;
-    Image median_img = Projection::applyMedianIP(vol);
-    median_img.save("test_medianIP.png");
-
 
     return 0;
 }
