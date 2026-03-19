@@ -177,11 +177,11 @@ int main(int argc, char* argv[]) {
 
         // ── Histogram Equalisation ─────────────────────────────────────────
         } else if (a == "-h" || a == "--histogram") {
-            // TODO: handle colorspace if needed
-            if (nextIsColorspace(args, i + 1)) ++i;
+            std::string colorspace = "HSV";
+            if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
             if (!isVolumeMode) {
                 ensureLoaded();
-                HistogramEqualisation f;
+                HistogramEqualisation f(colorspace);
                 f.apply(img);
             }
 

@@ -1,27 +1,40 @@
 #include "Threshold.h"
 #include "Image.h"
+
 #include <vector>
+#include <string>
+
+/**
+ * @brief Construct a Threshold filter with a threshold value and colour space.
+ *
+ * @param value Threshold in 8-bit intensity space [0,255].
+ * @param cs Colour space for RGB images: "HSV" or "HSL".
+ */
+Threshold::Threshold(int value, const std::string& cs)
+    : thresholdValue(value), colourSpace(cs)
+{
+    // Clamp threshold to valid 8-bit range
+    if (thresholdValue < 0)
+        thresholdValue = 0;
+    if (thresholdValue > 255)
+        thresholdValue = 255;
+
+    // Fallback to HSV if invalid string is provided
+    if (colourSpace != "HSV" && colourSpace != "HSL")
+        colourSpace = "HSV";
+}
 
 /**
  * @brief Apply binary thresholding to an image.
  *
- * This function converts an image into a binary (black-and-white) image
- * based on a fixed threshold value. Pixels above the threshold are set
- * to white (255 or 1.0), and those below are set to black (0).
+ * For grayscale images, thresholding is applied directly to intensity values.
  *
- * Two cases are handled:
+ * For RGB images:
+ * - If colourSpace == "HSV", threshold the V channel.
+ * - If colourSpace == "HSL", threshold the L channel.
  *
- * 1. Grayscale images (single channel):
- *    - Threshold is applied directly to pixel intensity.
- *
- * 2. RGB images (three or more channels):
- *    - The image is first converted to HSL colour space.
- *    - Thresholding is applied to the lightness (L) channel.
- *    - Saturation (S) is set to zero to remove colour, producing a
- *      purely black-and-white output.
- *
- * Using HSL allows thresholding based on perceived brightness rather
- * than raw RGB values, which produces more visually meaningful results.
+ * In both RGB cases, saturation is set to zero so that the final output
+ * is truly black-and-white rather than colour-posterised.
  *
  * @param image Reference to the Image object to be modified in-place.
  *
@@ -29,53 +42,63 @@
  */
 void Threshold::apply(Image& image)
 {
-    // Retrieve image properties
     int width = image.getWidth();
     int height = image.getHeight();
     int channels = image.getChannels();
 
-    // Fixed threshold in 8-bit space
-    const int thresholdInt = 127;
-
     // Case 1: grayscale image
     if (channels == 1)
     {
-        // Apply threshold directly to intensity values
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 int pixel = image.getPixelSimple(x, y, 0);
-                // Binary threshold: above -> white, below -> black
-                pixel = (pixel > thresholdInt) ? 255 : 0;
-                image.setPixel(x, y, 0, pixel);
+                pixel = (pixel > thresholdValue) ? 255 : 0;
+                image.setPixel(x, y, 0, static_cast<unsigned char>(pixel));
             }
         }
         return;
     }
 
-    // Case 2: RGB image
-    if (channels >= 3)
-    {
-        // Convert RGB image to HSL representation
-        std::vector<float> hslData = image.toHSL();
-        // Normalised threshold (0–1 range for HSL)
-        const float threshold = 127.0f / 255.0f;
+    // Normalised threshold for HSV/HSL channels in [0,1]
+    const float thresholdNormalised =
+        static_cast<float>(thresholdValue) / 255.0f;
 
-        // Iterate through each pixel (3 values per pixel: H, S, L)
+    // Case 2: RGB image using HSV
+    if (channels >= 3 && colourSpace == "HSV")
+    {
+        std::vector<float> hsvData = image.toHSV();
+
+        for (int i = 0; i < width * height; i++)
+        {
+            int idx = i * 3;
+            float& s = hsvData[idx + 1]; // saturation
+            float& v = hsvData[idx + 2]; // value
+
+            v = (v > thresholdNormalised) ? 1.0f : 0.0f;
+            s = 0.0f; // remove colour for black/white output
+        }
+
+        image.updateFromHSV(hsvData);
+        return;
+    }
+
+    // Case 3: RGB image using HSL
+    if (channels >= 3 && colourSpace == "HSL")
+    {
+        std::vector<float> hslData = image.toHSL();
+
         for (int i = 0; i < width * height; i++)
         {
             int idx = i * 3;
             float& s = hslData[idx + 1]; // saturation
             float& l = hslData[idx + 2]; // lightness
 
-            // Apply threshold to lightness channel
-            l = (l > threshold) ? 1.0f : 0.0f;
-            // Remove colour information to produce true binary output
-            s = 0.0f; // remove colour so output becomes black/white
+            l = (l > thresholdNormalised) ? 1.0f : 0.0f;
+            s = 0.0f; // remove colour for black/white output
         }
 
-        // Convert back from HSL to RGB and update image
         image.updateFromHSL(hslData);
     }
 }

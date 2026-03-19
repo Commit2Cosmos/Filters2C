@@ -1,6 +1,21 @@
 #include "HistogramEqualisation.h"
+#include "Image.h"
+
 #include <cmath>
+#include <string>
 #include <vector>
+
+/**
+ * @brief Construct a histogram equalisation filter with a colour space choice.
+ *
+ * @param cs Colour space for RGB images: "HSV" or "HSL".
+ */
+HistogramEqualisation::HistogramEqualisation(const std::string& cs)
+    : colourSpace(cs)
+{
+    if (colourSpace != "HSV" && colourSpace != "HSL")
+        colourSpace = "HSV";
+}
 
 /**
  * @brief Build a lookup table (LUT) for histogram equalisation.
@@ -8,26 +23,16 @@
  * This function computes a mapping from original pixel intensities
  * to equalised intensities using the cumulative distribution function (CDF).
  *
- * Steps:
- * 1. Compute histogram of pixel values.
- * 2. Compute cumulative distribution function (CDF).
- * 3. Normalise CDF to span full intensity range [0,255].
- * 4. Store mapping in a lookup table (LUT).
- *
- * Special case:
- * If all pixels have the same value, the LUT becomes identity
- * to avoid division by zero and preserve the image.
- *
  * @param values Input pixel intensity values (0–255).
  * @return LUT mapping original intensities to equalised ones.
  */
-std::vector<unsigned char> HistogramEqualisation::buildEqualisationLUT(const std::vector<unsigned char>& values) const
+std::vector<unsigned char> HistogramEqualisation::buildEqualisationLUT(
+    const std::vector<unsigned char>& values) const
 {
     std::vector<int> histogram(256, 0);
     std::vector<int> cdf(256, 0);
     std::vector<unsigned char> lut(256, 0);
 
-    // Handle empty input safely
     if (values.empty())
         return lut;
 
@@ -60,7 +65,6 @@ std::vector<unsigned char> HistogramEqualisation::buildEqualisationLUT(const std
     // Special case: constant image
     if (total == cdfMin)
     {
-        // All pixels have the same value → no enhancement needed
         for (int i = 0; i < 256; i++)
         {
             lut[i] = static_cast<unsigned char>(i);
@@ -68,13 +72,12 @@ std::vector<unsigned char> HistogramEqualisation::buildEqualisationLUT(const std
         return lut;
     }
 
-    // Build lookup table
+    // Step 4: Build LUT
     for (int i = 0; i < 256; i++)
     {
         float mapped = static_cast<float>(cdf[i] - cdfMin) /
                        static_cast<float>(total - cdfMin);
 
-        // Ensure numerical stability
         if (mapped < 0.0f)
             mapped = 0.0f;
 
@@ -87,23 +90,13 @@ std::vector<unsigned char> HistogramEqualisation::buildEqualisationLUT(const std
 /**
  * @brief Apply histogram equalisation to an image.
  *
- * This function enhances image contrast by redistributing intensity values.
+ * Grayscale images are equalised directly.
  *
- * Two cases are handled:
- *
- * 1. Grayscale images:
- *    - Equalisation is applied directly to pixel intensities.
- *
- * 2. RGB images:
- *    - Image is converted to HSL colour space.
- *    - Equalisation is applied only to the lightness (L) channel.
- *    - The result is converted back to RGB.
- *
- * Using HSL avoids colour distortion and preserves hue and saturation.
+ * For RGB images:
+ * - if colourSpace == "HSV", equalise the V channel
+ * - if colourSpace == "HSL", equalise the L channel
  *
  * @param image Reference to the Image object (modified in-place).
- *
- * Time Complexity: O(width × height)
  */
 void HistogramEqualisation::apply(Image& image)
 {
@@ -111,7 +104,6 @@ void HistogramEqualisation::apply(Image& image)
     int height = image.getHeight();
     int channels = image.getChannels();
 
-    // Validate image size
     if (width <= 0 || height <= 0)
         return;
 
@@ -121,7 +113,6 @@ void HistogramEqualisation::apply(Image& image)
         std::vector<unsigned char> grayValues;
         grayValues.reserve(width * height);
 
-        // Extract pixel intensities
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -130,10 +121,8 @@ void HistogramEqualisation::apply(Image& image)
             }
         }
 
-        // Build LUT
         std::vector<unsigned char> lut = buildEqualisationLUT(grayValues);
 
-        // Apply LUT
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -146,34 +135,62 @@ void HistogramEqualisation::apply(Image& image)
         return;
     }
 
-    // Case 2: RGB / RGBA image
-    if (channels >= 3)
+    // Case 2: RGB / RGBA image using HSV
+    if (channels >= 3 && colourSpace == "HSV")
     {
-        // Convert to HSL
+        std::vector<float> hsvData = image.toHSV();
+        std::vector<unsigned char> valueChannel;
+        valueChannel.reserve(width * height);
+
+        // Extract V channel and scale to [0,255]
+        for (int i = 2; i < static_cast<int>(hsvData.size()); i += 3)
+        {
+            float v = hsvData[i];
+
+            if (v < 0.0f) v = 0.0f;
+            if (v > 1.0f) v = 1.0f;
+
+            valueChannel.push_back(
+                static_cast<unsigned char>(std::round(v * 255.0f))
+            );
+        }
+
+        std::vector<unsigned char> lut = buildEqualisationLUT(valueChannel);
+
+        int pixelIndex = 0;
+        for (int i = 2; i < static_cast<int>(hsvData.size()); i += 3)
+        {
+            unsigned char oldV = valueChannel[pixelIndex];
+            hsvData[i] = static_cast<float>(lut[oldV]) / 255.0f;
+            pixelIndex++;
+        }
+
+        image.updateFromHSV(hsvData);
+        return;
+    }
+
+    // Case 3: RGB / RGBA image using HSL
+    if (channels >= 3 && colourSpace == "HSL")
+    {
         std::vector<float> hslData = image.toHSL();
         std::vector<unsigned char> lightnessValues;
         lightnessValues.reserve(width * height);
 
-        // Extract lightness channel and scale to [0,255]
+        // Extract L channel and scale to [0,255]
         for (int i = 2; i < static_cast<int>(hslData.size()); i += 3)
         {
             float l = hslData[i];
 
-            // Clamp to valid range [0,1]
-            if (l < 0.0f)
-                l = 0.0f;
-            if (l > 1.0f)
-                l = 1.0f;
+            if (l < 0.0f) l = 0.0f;
+            if (l > 1.0f) l = 1.0f;
 
             lightnessValues.push_back(
                 static_cast<unsigned char>(std::round(l * 255.0f))
             );
         }
 
-        // Build LUT
         std::vector<unsigned char> lut = buildEqualisationLUT(lightnessValues);
 
-        // Apply equalised values back to HSL
         int pixelIndex = 0;
         for (int i = 2; i < static_cast<int>(hslData.size()); i += 3)
         {
@@ -182,7 +199,6 @@ void HistogramEqualisation::apply(Image& image)
             pixelIndex++;
         }
 
-        // Convert back to RGB
         image.updateFromHSL(hslData);
     }
 }

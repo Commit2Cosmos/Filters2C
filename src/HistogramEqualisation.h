@@ -2,16 +2,21 @@
 #define HISTOGRAMEQUALISATION_H
 
 #include "Filter.h"
-#include "Image.h"
+#include <string>
 #include <vector>
 
 class HistogramEqualisation : public Filter
 {
-public:
-    void apply(Image& image) override;
-
 private:
-    std::vector<unsigned char> buildEqualisationLUT(const std::vector<unsigned char>& values) const;
+    std::string colourSpace;
+
+    std::vector<unsigned char> buildEqualisationLUT(
+        const std::vector<unsigned char>& values) const;
+
+public:
+    HistogramEqualisation(const std::string& cs = "HSV");
+
+    void apply(Image& image) override;
 };
 
 #endif
