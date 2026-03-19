@@ -9,6 +9,7 @@ set(TEST_SOURCES
     test_simple_filters
     test_slice
     test_volume
+    test_filter_invariants
 )
 
 foreach(TEST_NAME IN LISTS TEST_SOURCES)
