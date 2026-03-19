@@ -12,14 +12,20 @@
  * @brief Single-kernel constructor for filters like Sharpen and Emboss.
  * @param kernel The 2D convolution kernel to apply.
  */
-ConvFilter::ConvFilter(Kernel kernel) : kernels_({std::move(kernel)}) {}
+ConvFilter::ConvFilter(Kernel kernel) {
+    kernels_.push_back(std::move(kernel));
+}
 
 /**
  * @brief Dual-kernel constructor for gradient filters.
  * @param kernelX Kernel for detecting horizontal edges (Gx).
  * @param kernelY Kernel for detecting vertical edges (Gy).
  */
-ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) : kernels_({std::move(kernelX), std::move(kernelY)}) {}
+ConvFilter::ConvFilter(Kernel kernelX, Kernel kernelY) {
+    kernels_.reserve(2); // Optional: prevents reallocation
+    kernels_.push_back(std::move(kernelX));
+    kernels_.push_back(std::move(kernelY));
+}
 
 
 // ── apply ─────────────────────────────────────────────────────────────────────
@@ -80,53 +86,94 @@ void ConvFilter::normalise(std::vector<std::vector<float>>& results, float theor
 /**
  * @brief Clamps float results to [0, 255] and writes them back to the image.
  */
-void ConvFilter::writeResults(Image& image,
-                              const std::vector<std::vector<float>>& results) const {
-    const int w = image.getWidth();
-    const int h = image.getHeight();
+void ConvFilter::writeResults(Image& image, const std::vector<std::vector<float>>& results) const {
     const int ch = image.getChannels();
+    const int totalPixels = image.getWidth() * image.getHeight();
+    
+    // Call the new non-const getter to get a writable pointer
+    unsigned char* dst = image.getDataUnsafe(); 
 
-    for (int c = 0; c < ch; ++c)
-        for (int y = 0; y < h; ++y)
-            for (int x = 0; x < w; ++x) {
-                float val = results[c][y * w + x];
-                val = std::max(0.0f, std::min(255.0f, val));
-                image.setPixel(x, y, c, static_cast<unsigned char>(val));
-            }
+    // Outer loop: Iterate over pixels
+    for (int i = 0; i < totalPixels; ++i) {
+        
+        // Inner loop: Iterate over channels sequentially
+        for (int c = 0; c < ch; ++c) {
+            float val = std::clamp(results[c][i], 0.0f, 255.0f);
+            
+            // Write sequentially and increment the pointer
+            *dst++ = static_cast<unsigned char>(val);
+        }
+    }
 }
 
 
-// ── convolveChannel ───────────────────────────────────────────────────────────
 std::vector<float> ConvFilter::convolveChannel(const Image& image, int ch) const {
     const int w = image.getWidth();
     const int h = image.getHeight();
-    const int kh = static_cast<int>(kernels_[0].size());
-    const int kw = static_cast<int>(kernels_[0][0].size());
+    const int kh = kernels_[0].height;
+    const int kw = kernels_[0].width;
     const int halfH = kh / 2;
     const int halfW = kw / 2;
-
     const bool isFused = kernels_.size() > 1;
+    
     std::vector<float> result(w * h, 0.0f);
 
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            float v1 = 0.0f;
-            float v2 = 0.0f;
-
-            for (int ky = 0; ky < kh; ++ky) {
-                for (int kx = 0; kx < kw; ++kx) {
-                    int srcX = x + kx - halfW;
-                    int srcY = y + ky - halfH;
-                    float pixel = static_cast<float>(image.getPixel(srcX, srcY, ch));
-
-                    v1 += pixel * kernels_[0][ky][kx];
-                    if (isFused) {
-                        v2 += pixel * kernels_[1][ky][kx];
-                    }
-                }
+    // Helper lambdas to process a single pixel
+    auto computePixelSafe = [&](int x, int y) {
+        float v1 = 0.0f, v2 = 0.0f;
+        for (int ky = 0; ky < kh; ++ky) {
+            for (int kx = 0; kx < kw; ++kx) {
+                float pixel = static_cast<float>(image.getPixelSimple(x + kx - halfW, y + ky - halfH, ch));
+                int kIndex = ky * kw + kx;
+                v1 += pixel * kernels_[0].data[kIndex];
+                if (isFused) v2 += pixel * kernels_[1].data[kIndex];
             }
-            // Apply magnitude calculation if dual-kernel, otherwise return single sum
-            result[y * w + x] = isFused ? std::sqrt(v1 * v1 + v2 * v2) : v1;
+        }
+        return isFused ? std::sqrt(v1 * v1 + v2 * v2) : v1;
+    };
+
+    auto computePixelEdge = [&](int x, int y) {
+        float v1 = 0.0f, v2 = 0.0f;
+        for (int ky = 0; ky < kh; ++ky) {
+            for (int kx = 0; kx < kw; ++kx) {
+                float pixel = static_cast<float>(image.getPixel(x + kx - halfW, y + ky - halfH, ch));
+                int kIndex = ky * kw + kx;
+                v1 += pixel * kernels_[0].data[kIndex];
+                if (isFused) v2 += pixel * kernels_[1].data[kIndex];
+            }
+        }
+        return isFused ? std::sqrt(v1 * v1 + v2 * v2) : v1;
+    };
+
+    // Top border -> slow path
+    for (int y = 0; y < halfH; ++y) {
+        for (int x = 0; x < w; ++x) {
+            result[y * w + x] = computePixelEdge(x, y);
+        }
+    }
+
+    // Middle section
+    for (int y = halfH; y < h - halfH; ++y) {
+        // Left border -> slow path
+        for (int x = 0; x < halfW; ++x) {
+            result[y * w + x] = computePixelEdge(x, y);
+        }
+        
+        // Inner section -> fast path
+        for (int x = halfW; x < w - halfW; ++x) {
+            result[y * w + x] = computePixelSafe(x, y);
+        }
+        
+        // Right border -> slow path
+        for (int x = w - halfW; x < w; ++x) {
+            result[y * w + x] = computePixelEdge(x, y);
+        }
+    }
+
+    // Bottom border -> slow path
+    for (int y = h - halfH; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            result[y * w + x] = computePixelEdge(x, y);
         }
     }
 

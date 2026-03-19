@@ -27,12 +27,26 @@ public:
     int getHeight() const { return height; }
     int getChannels() const { return channels; }
     const unsigned char* getData() const { return data.data(); }
+    // Read/write for optimisations
+    unsigned char* getDataUnsafe() { return data.data(); }
 
-    // Pixel Access
-    unsigned char getPixel(int x, int y, int channel) const;
-    unsigned char getPixelSimple(int x, int y, int channel) const; // no boundary checks
-    void setPixel(int x, int y, int channel, unsigned char value);
+    // Pixel Access (no boundary checks)
+    inline unsigned char getPixelSimple(int x, int y, int channel) const {
+        return data[(y * width + x) * channels + channel];
+    } 
 
+    // Pixel Access (clamping for "extend" strategy)
+    inline unsigned char getPixel(int x, int y, int channel) const {
+        x = std::clamp(x, 0, width - 1);  
+        y = std::clamp(y, 0, height - 1);
+        return data[(y * width + x) * channels + channel];
+    }
+
+    // Pixel Setter
+    inline void setPixel(int x, int y, int channel, unsigned char value) {
+        if (x < 0 || x >= width || y < 0 || y >= height || channel < 0 || channel >= channels) return;
+        data[(y * width + x) * channels + channel] = value;
+    }
     
     // --- Color Space Conversions ---
 
