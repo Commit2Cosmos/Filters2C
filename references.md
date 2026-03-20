@@ -22,7 +22,6 @@
 
 - Debugging issues with code compiling
 
-**Codex** by **OpenAI** at <https://openai.com/research/codex> used for:
 
 
 
