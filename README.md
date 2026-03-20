@@ -23,6 +23,10 @@ The project is structured as a reusable C++ library plus a command-line executab
 
 ### Performance plots
 
+![Time](docs/runtime_2d_filters.png)
+
+![Memory](docs/memory_2d_filters.png)
+
 ![Image resolution vs processing time](docs/plot_size_vs_time.png)
 
 ![Filter speed comparison](docs/plot_filter_comparison.png)
@@ -167,10 +171,6 @@ Purpose: these modules convert a full 3D scan volume into interpretable 2D outpu
 
 - `Slice`: extracts 2D cross-sections such as `XZ` and `YZ` from a 3D volume
 - `Projection`: generates projected 2D images such as `MIP`, `MinIP`, `meanAIP`, and `medianAIP`
-
-Suggested showcase:
-
-![Volume processing result](docs/effects/volume_processing.png)
 
 Caption: include either one multi-panel figure with `XZ`, `YZ`, and projection outputs, or one representative scan result with a short label for each method.
 
