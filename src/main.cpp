@@ -61,6 +61,15 @@ static bool nextIsColorspace(const std::vector<std::string>& args, int i) {
     return i < static_cast<int>(args.size()) - 1 && isColorspace(args[i]);
 }
 
+static const std::string& requireArg(
+    const std::vector<std::string>& args, int& i, const std::string& option)
+{
+    if (i + 1 >= static_cast<int>(args.size()) - 1) {
+        throw std::invalid_argument("Missing value for " + option);
+    }
+    return args[++i];
+}
+
 // Build a sorted list of file paths matching <base><anything>.<ext>
 static std::vector<std::string> buildVolumeFileList(
     const std::string& base, int first, int last, const std::string& ext)
@@ -152,166 +161,189 @@ int main(int argc, char* argv[]) {
     };
 
     // ── Argument parsing loop ─────────────────────────────────────────────────
-    for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
-        const std::string& a = args[i];
+    try {
+        for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
+            const std::string& a = args[i];
 
-        // ── Input source ──────────────────────────────────────────────────────
-        if (a == "-i") {
-            inputImagePath = args[++i];
-            isVolumeMode   = false;
+            // ── Input source ──────────────────────────────────────────────────
+            if (a == "-i") {
+                inputImagePath = requireArg(args, i, a);
+                isVolumeMode   = false;
 
-        } else if (a == "-d") {
-            volumeBase   = args[++i];
-            isVolumeMode = true;
+            } else if (a == "-d") {
+                volumeBase   = requireArg(args, i, a);
+                isVolumeMode = true;
 
-        // ── Volume reading options ─────────────────────────────────────────
-        } else if (a == "-f" || a == "--first") {
-            firstIndex = std::stoi(args[++i]);
+            // ── Volume reading options ─────────────────────────────────────
+            } else if (a == "-f" || a == "--first") {
+                firstIndex = std::stoi(requireArg(args, i, a));
 
-        } else if (a == "-l" || a == "--last") {
-            lastIndex = std::stoi(args[++i]);
+            } else if (a == "-l" || a == "--last") {
+                lastIndex = std::stoi(requireArg(args, i, a));
 
-        } else if (a == "-x" || a == "--extension") {
-            volumeExt = args[++i];
+            } else if (a == "-x" || a == "--extension") {
+                volumeExt = requireArg(args, i, a);
 
-        // ── Greyscale ─────────────────────────────────────────────────────
-        } else if (a == "-g" || a == "--greyscale") {
-            if (!isVolumeMode) {
-                ensureLoaded();
-                GrayScale f;
-                f.apply(img);
-            }
-
-        // ── Brightness ────────────────────────────────────────────────────
-        } else if (a == "-b" || a == "--brightness") {
-            std::string val = args[++i];
-            if (!isVolumeMode) {
-                ensureLoaded();
-                Brightness f(val);
-                f.apply(img);
-            }
-
-        // ── Histogram Equalisation ─────────────────────────────────────────
-        } else if (a == "-h" || a == "--histogram") {
-            std::string colorspace = "HSV";
-            if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
-            if (!isVolumeMode) {
-                ensureLoaded();
-                HistogramEqualisation f(colorspace);
-                f.apply(img);
-            }
-
-        // ── Blur (image and volume) ────────────────────────────────────────
-        } else if (a == "-r" || a == "--blur") {
-            std::string type = args[++i];
-            int         size = std::stoi(args[++i]);
-
-            if (isVolumeMode) {
-                BlurSpec spec{ type, size };
-                if (type == "Gaussian") spec.stdev = std::stod(args[++i]);
-                volumeBlur = spec;
-            } else {
-                ensureLoaded();
-                if (type == "Gaussian") {
-                    double stdev = std::stod(args[++i]);
-                    GaussianBlurFilter f(size, stdev); f.apply(img);
-                } else if (type == "Box") {
-                    BoxBlurFilter f(size); f.apply(img);
-                } else if (type == "Median") {
-                    MedianBlurFilter f(size); f.apply(img);
-                } else {
-                    std::cerr << "Error: unknown blur type '" << type << "'\n"; return 1;
+            // ── Greyscale ─────────────────────────────────────────────────
+            } else if (a == "-g" || a == "--greyscale") {
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    GrayScale f;
+                    f.apply(img);
                 }
-            }
 
-        // ── Edge detection ─────────────────────────────────────────────────
-        } else if (a == "-e" || a == "--edge") {
-            std::string method = args[++i];
-            if (!isVolumeMode) {
-                ensureLoaded();
-                if      (method == "Sobel")        { SobelFilter f;        f.apply(img); }
-                else if (method == "Prewitt")       { PrewittFilter f;      f.apply(img); }
-                else if (method == "Scharr")        { ScharrFilter f;       f.apply(img); }
-                else if (method == "RobertsCross")  { RobertsCrossFilter f; f.apply(img); }
-                else { std::cerr << "Error: unknown edge method '" << method << "'\n"; return 1; }
-            }
+            // ── Brightness ────────────────────────────────────────────────
+            } else if (a == "-b" || a == "--brightness") {
+                std::string val = requireArg(args, i, a);
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    Brightness f(val);
+                    f.apply(img);
+                }
 
-        // ── Sharpen ────────────────────────────────────────────────────────
-        } else if (a == "-L" || a == "--sharpen") {
-            if (!isVolumeMode) {
-                ensureLoaded();
-                SharpenFilter f;
-                f.apply(img);
-            }
+            // ── Histogram Equalisation ─────────────────────────────────────
+            } else if (a == "-h" || a == "--histogram") {
+                std::string colorspace = "HSV";
+                if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    HistogramEqualisation f(colorspace);
+                    f.apply(img);
+                }
 
-        // ── Emboss ─────────────────────────────────────────────────────────
-        } else if (a == "-m" || a == "--emboss") {
-            float strength   = std::stof(args[++i]);
-            if (strength < 0.0f || strength > 10.0f) {
-                throw std::invalid_argument("Emboss strength must be in range [0, 10]");
-            }
-            std::string direction = args[++i];
-            std::string colorspace = "HSV";
-            if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
-            if (!isVolumeMode) {
-                ensureLoaded();
-                EmbossFilter f(strength,
-                               EmbossFilter::parseDirection(direction),
-                               EmbossFilter::parseColorSpace(colorspace));
-                f.apply(img);
-            }
+            // ── Blur (image and volume) ────────────────────────────────────
+            } else if (a == "-r" || a == "--blur") {
+                std::string type = requireArg(args, i, a);
+                int         size = std::stoi(requireArg(args, i, a));
 
-        // ── Salt and Pepper ────────────────────────────────────────────────
-        } else if (a == "-n" || a == "--saltpepper") {
-            double amount = std::stod(args[++i]);
-            if (!isVolumeMode) {
-                ensureLoaded();
-                SaltAndPepper f(amount);
-                f.apply(img);
-            }
+                if (isVolumeMode) {
+                    BlurSpec spec{ type, size };
+                    if (type == "Gaussian") spec.stdev = std::stod(requireArg(args, i, a));
+                    volumeBlur = spec;
+                } else {
+                    ensureLoaded();
+                    if (type == "Gaussian") {
+                        double stdev = std::stod(requireArg(args, i, a));
+                        GaussianBlurFilter f(size, stdev); f.apply(img);
+                    } else if (type == "Box") {
+                        BoxBlurFilter f(size); f.apply(img);
+                    } else if (type == "Median") {
+                        MedianBlurFilter f(size); f.apply(img);
+                    } else {
+                        std::cerr << "Error: unknown blur type '" << type << "'\n"; return 1;
+                    }
+                }
 
-        // ── Threshold ──────────────────────────────────────────────────────
-        } else if (a == "-t" || a == "--threshold") {
-            int         value      = std::stoi(args[++i]);
-            std::string colorspace = "HSV";
-            if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
-            if (!isVolumeMode) {
-                ensureLoaded();
-                Threshold f(value, colorspace);
-                f.apply(img);
-            }
+            // ── Edge detection ─────────────────────────────────────────────
+            } else if (a == "-e" || a == "--edge") {
+                std::string method = requireArg(args, i, a);
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    if      (method == "Sobel")        { SobelFilter f;        f.apply(img); }
+                    else if (method == "Prewitt")       { PrewittFilter f;      f.apply(img); }
+                    else if (method == "Scharr")        { ScharrFilter f;       f.apply(img); }
+                    else if (method == "RobertsCross")  { RobertsCrossFilter f; f.apply(img); }
+                    else { std::cerr << "Error: unknown edge method '" << method << "'\n"; return 1; }
+                }
 
-        // ── Volume Slice ───────────────────────────────────────────────────
-        } else if (a == "-s" || a == "--slice") {
-            std::string plane = args[++i];
-            int         index = std::stoi(args[++i]);
-            if (isVolumeMode) {
-                Volume vol = loadVolume();
-                if      (plane == "XZ") img = Slice::extractXZ(vol, index);
-                else if (plane == "YZ") img = Slice::extractYZ(vol, index);
-                else { std::cerr << "Error: unknown slice plane '" << plane << "'\n"; return 1; }
-                imageLoaded = true;
-            }
+            // ── Sharpen ────────────────────────────────────────────────────
+            } else if (a == "-L" || a == "--sharpen") {
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    SharpenFilter f;
+                    f.apply(img);
+                }
 
-        // ── Volume Projection ──────────────────────────────────────────────
-        } else if (a == "-p" || a == "--projection") {
-            std::string type = args[++i];
-            if (isVolumeMode) {
-                Volume vol = loadVolume();
-                Projection proj;
-                if      (type == "MIP")        img = proj.applyMaxIP   (vol, firstIndex, lastIndex);
-                else if (type == "MinIP")       img = proj.applyMinIP   (vol, firstIndex, lastIndex);
-                else if (type == "meanAIP")     img = proj.applyMeanIP  (vol, firstIndex, lastIndex);
-                else if (type == "medianAIP")   img = proj.applyMedianIP(vol, firstIndex, lastIndex);
-                else { std::cerr << "Error: unknown projection type '" << type << "'\n"; return 1; }
-                imageLoaded = true;
-            }
+            // ── Emboss ─────────────────────────────────────────────────────
+            } else if (a == "-m" || a == "--emboss") {
+                float strength   = std::stof(requireArg(args, i, a));
+                if (strength < 0.0f || strength > 10.0f) {
+                    throw std::invalid_argument("Emboss strength must be in range [0, 10]");
+                }
+                std::string direction = requireArg(args, i, a);
+                std::string colorspace = "HSV";
+                if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    EmbossFilter f(strength,
+                                   EmbossFilter::parseDirection(direction),
+                                   EmbossFilter::parseColorSpace(colorspace));
+                    f.apply(img);
+                }
 
-        // ── Unknown ────────────────────────────────────────────────────────
-        } else {
-            std::cerr << "Error: unknown argument '" << a << "'\n";
-            return 1;
+            // ── Salt and Pepper ────────────────────────────────────────────
+            } else if (a == "-n" || a == "--saltpepper") {
+                double amount = std::stod(requireArg(args, i, a));
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    SaltAndPepper f(amount);
+                    f.apply(img);
+                }
+
+            // ── Threshold ──────────────────────────────────────────────────
+            } else if (a == "-t" || a == "--threshold") {
+                int         value      = std::stoi(requireArg(args, i, a));
+                std::string colorspace = "HSV";
+                if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
+                if (!isVolumeMode) {
+                    ensureLoaded();
+                    Threshold f(value, colorspace);
+                    f.apply(img);
+                }
+
+            // ── Volume Slice ───────────────────────────────────────────────
+            } else if (a == "-s" || a == "--slice") {
+                std::string plane = requireArg(args, i, a);
+                int         index = std::stoi(requireArg(args, i, a));
+                if (isVolumeMode) {
+                    Volume vol = loadVolume();
+                    if      (plane == "XZ") img = Slice::extractXZ(vol, index);
+                    else if (plane == "YZ") img = Slice::extractYZ(vol, index);
+                    else { std::cerr << "Error: unknown slice plane '" << plane << "'\n"; return 1; }
+                    imageLoaded = true;
+                }
+
+            // ── Volume Projection ──────────────────────────────────────────
+            } else if (a == "-p" || a == "--projection") {
+                std::string type = requireArg(args, i, a);
+                if (isVolumeMode) {
+                    Volume vol = loadVolume();
+                    Projection proj;
+                    if      (type == "MIP")        img = proj.applyMaxIP   (vol, firstIndex, lastIndex);
+                    else if (type == "MinIP")       img = proj.applyMinIP   (vol, firstIndex, lastIndex);
+                    else if (type == "meanAIP")     img = proj.applyMeanIP  (vol, firstIndex, lastIndex);
+                    else if (type == "medianAIP")   img = proj.applyMedianIP(vol, firstIndex, lastIndex);
+                    else { std::cerr << "Error: unknown projection type '" << type << "'\n"; return 1; }
+                    imageLoaded = true;
+                }
+
+            // ── Unknown ────────────────────────────────────────────────────
+            } else {
+                std::cerr << "Error: unknown argument '" << a << "'\n";
+                return 1;
+            }
         }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    if (!isVolumeMode && inputImagePath.empty()) {
+        std::cerr << "Error: missing image input path\n";
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    if (isVolumeMode && volumeBase.empty()) {
+        std::cerr << "Error: missing volume input path\n";
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    if (firstIndex >= 0 && lastIndex >= 0 && firstIndex > lastIndex) {
+        std::cerr << "Error: first index cannot be greater than last index\n";
+        return 1;
     }
 
     // Image mode with no filters: just load and copy.
