@@ -102,11 +102,9 @@ Purpose: these filters change pixel intensity or contrast directly and are usefu
 - `Threshold`: converts an image into a binary black-and-white result based on an intensity threshold
 - `SaltAndPepper`: injects impulse noise for testing noise removal behaviour
 
-Suggested showcase:
-
 ![Basic image filters result](docs/simplefilter.png)
 
-Caption: place a side-by-side or collage image here to show contrast improvement, grayscale conversion, thresholding, or noise injection on the same source image.
+Figure: examples of grayscale conversion, contrast adjustment, thresholding, and salt-and-pepper noise on representative input images.
 
 ### Blur filters
 
@@ -116,11 +114,9 @@ Purpose: these filters reduce noise and smooth local variation before later anal
 - `GaussianBlurFilter`: applies Gaussian smoothing to both images and volumes
 - `MedianBlurFilter`: removes impulsive noise using local medians in either 2D or 3D
 
-Suggested showcase:
-
 ![Blur result](docs/Blurfilter.png)
 
-Caption: use one figure comparing the original image with box blur, Gaussian blur, and median blur so the differences in smoothing behaviour are immediately visible.
+Figure: comparison of box blur, Gaussian blur, and median blur results on the same source image.
 
 ### Convolution-based enhancement filters
 
@@ -129,11 +125,9 @@ Purpose: these filters emphasise local structure and visual texture using convol
 - `SharpenFilter`: enhances local contrast using a Laplacian-style kernel
 - `EmbossFilter`: creates a relief-style shading effect with configurable direction, strength, and colour-space handling
 
-Suggested showcase:
-
 ![Enhancement filters result](docs/convfilter.png)
 
-Caption: show sharpening and embossing on the same input image so readers can compare detail enhancement against stylised surface relief.
+Figure: sharpening and embossing outputs showing detail enhancement and relief-style shading effects.
 
 ### Edge detection filters
 
@@ -144,11 +138,9 @@ Purpose: these filters estimate intensity gradients and highlight boundaries, co
 - `ScharrFilter`: performs edge detection with improved rotational symmetry compared with Sobel
 - `RobertsCrossFilter`: uses compact 2x2 diagonal kernels for fast edge detection
 
-Suggested showcase:
-
 ![Edge detection result](docs/edgefilter.png)
 
-Caption: this section works best with a four-panel comparison using the same source image, one panel per edge detector.
+Figure: edge maps produced by Sobel, Prewitt, Scharr, and Roberts Cross filters on the same input image.
 
 ### Volume analysis utilities
 
@@ -157,7 +149,9 @@ Purpose: these modules convert a full 3D scan volume into interpretable 2D outpu
 - `Slice`: extracts 2D cross-sections such as `XZ` and `YZ` from a 3D volume
 - `Projection`: generates projected 2D images such as `MIP`, `MinIP`, `meanAIP`, and `medianAIP`
 
-Caption: include either one multi-panel figure with `XZ`, `YZ`, and projection outputs, or one representative scan result with a short label for each method.
+![Volume processing result](docs/volume_processing.png)
+
+Figure: representative slice extraction and projection outputs generated from the sample 3D scan volume.
 
 ### Program entry and build modules
 
