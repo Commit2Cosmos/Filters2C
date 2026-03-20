@@ -21,17 +21,7 @@ The project is structured as a reusable C++ library plus a command-line executab
 
 ![Virtual human CT sample image](Images/vh_ct.png)
 
-### Performance plots
 
-![Time](docs/runtime_2d_filters.png)
-
-![Memory](docs/memory_2d_filters.png)
-
-![Image resolution vs processing time](docs/plot_size_vs_time.png)
-
-![Filter speed comparison](docs/plot_filter_comparison.png)
-
-![Linear scaling validation](docs/plot_linear_scaling.png)
 
 ## Features
 
@@ -188,6 +178,18 @@ Recommended image asset locations:
 - `docs/effects/edge_filters.png`
 - `docs/effects/volume_processing.png`
 
+### Performance plots
+
+![Time](docs/runtime_2d_filters.png)
+
+![Memory](docs/memory_2d_filters.png)
+
+![Image resolution vs processing time](docs/plot_size_vs_time.png)
+
+![Filter speed comparison](docs/plot_filter_comparison.png)
+
+![Linear scaling validation](docs/plot_linear_scaling.png)
+
 ## Processing Flow
 
 ### Image mode
@@ -285,7 +287,7 @@ That makes it a good fit for an advanced programming assignment focused on both 
 First clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone <[your-repo-url](https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
 cd advanced-programming-group-kruskal
 ```
 
