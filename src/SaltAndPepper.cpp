@@ -1,3 +1,14 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #include "SaltAndPepper.h"
 #include <random>
 #include <cmath>
@@ -8,7 +19,7 @@
  * @param noiseRatio Proportion of pixels to be corrupted by noise (range [0,1]).
  *                   A value of 0 means no noise, while 1 means all pixels are affected.
  */
-SaltAndPepper::SaltAndPepper(double noiseRatio)
+SaltAndPepper::SaltAndPepper(float noiseRatio)
     : noiseRatio(noiseRatio)
 {
 }

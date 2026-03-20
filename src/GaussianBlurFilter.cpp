@@ -1,3 +1,14 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #include "GaussianBlurFilter.h"
 
 #include "Image.h"
@@ -7,7 +18,7 @@
 #include <stdexcept>
 #include <vector>
 
-GaussianBlurFilter::GaussianBlurFilter(int kernelSize, double sigma)
+GaussianBlurFilter::GaussianBlurFilter(int kernelSize, float sigma)
     : kernelSize(kernelSize), sigma(sigma) {}
 
 bool GaussianBlurFilter::isValidKernelSize(int kernelSize) const
@@ -15,19 +26,19 @@ bool GaussianBlurFilter::isValidKernelSize(int kernelSize) const
     return kernelSize > 1 && kernelSize % 2 == 1;
 }
 
-std::vector<double> GaussianBlurFilter::createGaussianKernel1D(int kernelSize, double sigma) const
+std::vector<float> GaussianBlurFilter::createGaussianKernel1D(int kernelSize, float sigma) const
 {
     const int radius = kernelSize / 2;
-    std::vector<double> kernel(kernelSize, 0.0);
+    std::vector<float> kernel(kernelSize, 0.0);
 
-    double sum = 0.0;
+    float sum = 0.0;
     for (int i = -radius; i <= radius; ++i) {
-        const double value = std::exp(-(i * i) / (2.0 * sigma * sigma));
+        const float value = std::exp(-(i * i) / (2.0 * sigma * sigma));
         kernel[i + radius] = value;
         sum += value;
     }
 
-    for (double& v : kernel) {
+    for (float& v : kernel) {
         v /= sum;
     }
 
@@ -45,7 +56,7 @@ void GaussianBlurFilter::apply(Image& img)
     const int channels = img.getChannels();
     const int radius = kernelSize / 2;
 
-    const std::vector<double> kernel = createGaussianKernel1D(kernelSize, sigma);
+    const std::vector<float> kernel = createGaussianKernel1D(kernelSize, sigma);
 
     Image original = img;
     Image temp = img;
@@ -54,7 +65,7 @@ void GaussianBlurFilter::apply(Image& img)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                double sum = 0.0;
+                float sum = 0.0;
 
                 for (int k = -radius; k <= radius; ++k) {
                     sum += original.getPixel(x + k, y, c) * kernel[k + radius];
@@ -69,7 +80,7 @@ void GaussianBlurFilter::apply(Image& img)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                double sum = 0.0;
+                float sum = 0.0;
 
                 for (int k = -radius; k <= radius; ++k) {
                     sum += temp.getPixel(x, y + k, c) * kernel[k + radius];
@@ -93,7 +104,7 @@ void GaussianBlurFilter::apply(Volume& volume)
     const int channels = volume.getChannels();
     const int radius = kernelSize / 2;
 
-    const std::vector<double> kernel = createGaussianKernel1D(kernelSize, sigma);
+    const std::vector<float> kernel = createGaussianKernel1D(kernelSize, sigma);
 
     Volume original = volume;
     Volume temp1 = volume;
@@ -104,7 +115,7 @@ void GaussianBlurFilter::apply(Volume& volume)
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 for (int c = 0; c < channels; ++c) {
-                    double sum = 0.0;
+                    float sum = 0.0;
 
                     for (int k = -radius; k <= radius; ++k) {
                         sum += original.getVoxel(x + k, y, z, c) * kernel[k + radius];
@@ -121,7 +132,7 @@ void GaussianBlurFilter::apply(Volume& volume)
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 for (int c = 0; c < channels; ++c) {
-                    double sum = 0.0;
+                    float sum = 0.0;
 
                     for (int k = -radius; k <= radius; ++k) {
                         sum += temp1.getVoxel(x, y + k, z, c) * kernel[k + radius];
@@ -138,7 +149,7 @@ void GaussianBlurFilter::apply(Volume& volume)
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 for (int c = 0; c < channels; ++c) {
-                    double sum = 0.0;
+                    float sum = 0.0;
 
                     for (int k = -radius; k <= radius; ++k) {
                         sum += temp2.getVoxel(x, y, z + k, c) * kernel[k + radius];

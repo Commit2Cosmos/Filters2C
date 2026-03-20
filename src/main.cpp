@@ -1,3 +1,14 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -114,7 +125,7 @@ int main(int argc, char* argv[]) {
     std::string volumeExt      = "png";
 
     // Volume blur is stored and applied lazily when the volume is loaded.
-    struct BlurSpec { std::string type; int size; double stdev = 1.0; };
+    struct BlurSpec { std::string type; int size; float stdev = 1.0; };
     std::optional<BlurSpec> volumeBlur;
 
     Image img;
@@ -216,10 +227,19 @@ int main(int argc, char* argv[]) {
                 std::string type = requireArg(args, i, a);
                 int         size = std::stoi(requireArg(args, i, a));
 
-                if (isVolumeMode) {
-                    BlurSpec spec{ type, size };
-                    if (type == "Gaussian") spec.stdev = std::stod(requireArg(args, i, a));
-                    volumeBlur = spec;
+            if (isVolumeMode) {
+                BlurSpec spec{ type, size };
+                if (type == "Gaussian") spec.stdev = std::stod(args[++i]);
+                volumeBlur = spec;
+            } else {
+                ensureLoaded();
+                if (type == "Gaussian") {
+                    float stdev = std::stod(args[++i]);
+                    GaussianBlurFilter f(size, stdev); f.apply(img);
+                } else if (type == "Box") {
+                    BoxBlurFilter f(size); f.apply(img);
+                } else if (type == "Median") {
+                    MedianBlurFilter f(size); f.apply(img);
                 } else {
                     ensureLoaded();
                     if (type == "Gaussian") {
@@ -271,14 +291,14 @@ int main(int argc, char* argv[]) {
                     f.apply(img);
                 }
 
-            // ── Salt and Pepper ────────────────────────────────────────────
-            } else if (a == "-n" || a == "--saltpepper") {
-                double amount = std::stod(requireArg(args, i, a));
-                if (!isVolumeMode) {
-                    ensureLoaded();
-                    SaltAndPepper f(amount);
-                    f.apply(img);
-                }
+        // ── Salt and Pepper ────────────────────────────────────────────────
+        } else if (a == "-n" || a == "--saltpepper") {
+            float amount = std::stod(args[++i]);
+            if (!isVolumeMode) {
+                ensureLoaded();
+                SaltAndPepper f(amount);
+                f.apply(img);
+            }
 
             // ── Threshold ──────────────────────────────────────────────────
             } else if (a == "-t" || a == "--threshold") {

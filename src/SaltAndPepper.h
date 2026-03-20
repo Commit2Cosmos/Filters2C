@@ -1,3 +1,14 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #ifndef SALTANDPEPPER_H
 #define SALTANDPEPPER_H
 
@@ -15,7 +26,7 @@ public:
      * @brief Construct a salt-and-pepper noise filter.
      * @param noiseRatio Fraction of pixels to corrupt, typically in [0, 1].
      */
-    explicit SaltAndPepper(double noiseRatio);
+    explicit SaltAndPepper(float noiseRatio);
 
     /**
      * @brief Apply salt-and-pepper noise in-place.
@@ -25,7 +36,7 @@ public:
 
 private:
     /// Fraction of pixels selected for corruption.
-    double noiseRatio;
+    float noiseRatio;
 };
 
 #endif
