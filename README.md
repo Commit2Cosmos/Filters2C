@@ -271,17 +271,6 @@ For the full option reference, parameter rules, and more examples, see [command_
 └── CMakeLists.txt
 ```
 
-## Design Goals
-
-This project appears to be organised around a few clear software engineering goals:
-
-- modular filter classes instead of one large monolithic implementation
-- separation between image logic, volume logic, and command-line parsing
-- compatibility with automated testing through `ctest`
-- easy extension with new filters or new projection methods
-
-That makes it a good fit for an advanced programming assignment focused on both functionality and code structure.
-
 ## Build
 
 First clone the repository:
