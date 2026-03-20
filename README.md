@@ -15,11 +15,9 @@ The project is structured as a reusable C++ library plus a command-line executab
 
 ## Preview
 
-### Sample input images
 
-![Grace Hopper sample image](Images/gracehopper.png)
 
-![Virtual human CT sample image](Images/vh_ct.png)
+
 
 
 
@@ -96,6 +94,10 @@ The main program parses command-line options, decides whether it is in image mod
 - `Filter`: abstract base class for operations that can modify an `Image` and, where relevant, a `Volume`
 - `ConvFilter`: shared base class for convolution-based filters, including single-kernel effects and dual-kernel edge detectors
 - `Kernel`: lightweight structure used to represent convolution matrices
+
+### Sample input images
+
+![Grace Hopper sample image](Images/gracehopper.png)
 
 ### Basic image filters
 
@@ -276,7 +278,7 @@ For the full option reference, parameter rules, and more examples, see [command_
 First clone the repository:
 
 ```bash
-git clone <[your-repo-url](https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
+git clone <[repo-url](https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
 cd advanced-programming-group-kruskal
 ```
 
