@@ -149,9 +149,6 @@ These modules convert a full 3D scan volume into interpretable 2D outputs for in
 - `Slice`: extracts 2D cross-sections such as `XZ` and `YZ` from a 3D volume
 - `Projection`: generates projected 2D images such as `MIP`, `MinIP`, `meanAIP`, and `medianAIP`
 
-![Volume processing result](docs/volume_processing.png)
-
-Representative slice extraction and projection outputs generated from the sample 3D scan volume.
 
 ### Program entry and build modules
 
