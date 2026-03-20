@@ -253,6 +253,7 @@ int main(int argc, char* argv[]) {
                         std::cerr << "Error: unknown blur type '" << type << "'\n"; return 1;
                     }
                 }
+            }
 
             // ── Edge detection ─────────────────────────────────────────────
             } else if (a == "-e" || a == "--edge") {
