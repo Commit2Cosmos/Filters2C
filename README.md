@@ -259,7 +259,7 @@ For the full option reference, parameter rules, and more examples, see [command_
 First clone the repository:
 
 ```bash
-git clone <(https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
+git clone https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git
 cd advanced-programming-group-kruskal
 ```
 
