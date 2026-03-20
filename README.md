@@ -94,7 +94,7 @@ The main program parses command-line options, decides whether it is in image mod
 
 ### Basic image filters
 
-Purpose: these filters change pixel intensity or contrast directly and are useful for preprocessing, visual enhancement, and simple segmentation.
+These filters change pixel intensity or contrast directly and are useful for preprocessing, visual enhancement, and simple segmentation.
 
 - `GrayScale`: converts an RGB image into grayscale intensity values
 - `Brightness`: adjusts brightness using either a fixed offset or an automatic average-intensity correction
@@ -104,11 +104,11 @@ Purpose: these filters change pixel intensity or contrast directly and are usefu
 
 ![Basic image filters result](docs/simplefilter.png)
 
-Figure: examples of grayscale conversion, contrast adjustment, thresholding, and salt-and-pepper noise on representative input images.
+Examples of grayscale conversion, contrast adjustment, thresholding, and salt-and-pepper noise on representative input images.
 
 ### Blur filters
 
-Purpose: these filters reduce noise and smooth local variation before later analysis steps such as edge detection or thresholding.
+These filters reduce noise and smooth local variation before later analysis steps such as edge detection or thresholding.
 
 - `BoxBlurFilter`: performs simple local averaging on 2D images
 - `GaussianBlurFilter`: applies Gaussian smoothing to both images and volumes
@@ -116,22 +116,22 @@ Purpose: these filters reduce noise and smooth local variation before later anal
 
 ![Blur result](docs/Blurfilter.png)
 
-Figure: comparison of box blur, Gaussian blur, and median blur results on the same source image.
+Comparison of box blur, Gaussian blur, and median blur results on the same source image.
 
 ### Convolution-based enhancement filters
 
-Purpose: these filters emphasise local structure and visual texture using convolution kernels.
+These filters emphasise local structure and visual texture using convolution kernels.
 
 - `SharpenFilter`: enhances local contrast using a Laplacian-style kernel
 - `EmbossFilter`: creates a relief-style shading effect with configurable direction, strength, and colour-space handling
 
 ![Enhancement filters result](docs/convfilter.png)
 
-Figure: sharpening and embossing outputs showing detail enhancement and relief-style shading effects.
+Sharpening and embossing outputs showing detail enhancement and relief-style shading effects.
 
 ### Edge detection filters
 
-Purpose: these filters estimate intensity gradients and highlight boundaries, contours, and structural transitions in the image.
+These filters estimate intensity gradients and highlight boundaries, contours, and structural transitions in the image.
 
 - `SobelFilter`: detects horizontal and vertical gradients using the Sobel operator
 - `PrewittFilter`: performs edge detection with the Prewitt operator
@@ -140,18 +140,18 @@ Purpose: these filters estimate intensity gradients and highlight boundaries, co
 
 ![Edge detection result](docs/edgefilter.png)
 
-Figure: edge maps produced by Sobel, Prewitt, Scharr, and Roberts Cross filters on the same input image.
+Edge maps produced by Sobel, Prewitt, Scharr, and Roberts Cross filters on the same input image.
 
 ### Volume analysis utilities
 
-Purpose: these modules convert a full 3D scan volume into interpretable 2D outputs for inspection and analysis.
+These modules convert a full 3D scan volume into interpretable 2D outputs for inspection and analysis.
 
 - `Slice`: extracts 2D cross-sections such as `XZ` and `YZ` from a 3D volume
 - `Projection`: generates projected 2D images such as `MIP`, `MinIP`, `meanAIP`, and `medianAIP`
 
 ![Volume processing result](docs/volume_processing.png)
 
-Figure: representative slice extraction and projection outputs generated from the sample 3D scan volume.
+Representative slice extraction and projection outputs generated from the sample 3D scan volume.
 
 ### Program entry and build modules
 
