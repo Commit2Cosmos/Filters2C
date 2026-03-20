@@ -173,12 +173,6 @@ Recommended image asset locations:
 
 ![Memory](docs/memory_2d_filters.png)
 
-![Image resolution vs processing time](docs/plot_size_vs_time.png)
-
-![Filter speed comparison](docs/plot_filter_comparison.png)
-
-![Linear scaling validation](docs/plot_linear_scaling.png)
-
 ## Processing Flow
 
 ### Image mode
@@ -265,7 +259,7 @@ For the full option reference, parameter rules, and more examples, see [command_
 First clone the repository:
 
 ```bash
-git clone <[repo-url](https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
+git clone <(https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git)>
 cd advanced-programming-group-kruskal
 ```
 
