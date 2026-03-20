@@ -12,7 +12,14 @@
  */
 class ScharrFilter : public ConvFilter {
 public:
+    /**
+     * @brief Construct a Scharr edge detector.
+     */
     ScharrFilter();
+    /**
+     * @brief Apply Scharr edge detection to an image.
+     * @param image Image to modify.
+     */
     void apply(Image& image) override;
 };
 

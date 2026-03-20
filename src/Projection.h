@@ -4,22 +4,49 @@
 #include "Volume.h"
 #include "Image.h"
 
+/**
+ * @class Projection
+ * @brief Generates 2-D projections from a 3-D image volume.
+ *
+ * All methods are static utility functions operating along the z-axis over an
+ * inclusive slice range specified using 1-based indices.
+ */
 class Projection {
 public:
-    // Maximum Intensity Projection (MIP)
-    // Finds the maximum intensity of all pixels with a given (x,y) in the z-direction 
+    /**
+     * @brief Compute a maximum-intensity projection.
+     * @param volume Source volume.
+     * @param z_min First slice in the inclusive 1-based range.
+     * @param z_max Last slice in the inclusive 1-based range, or -1 for the end.
+     * @return Projected 2-D image.
+     */
     static Image applyMaxIP(const Volume& volume, int z_min = 1, int z_max = -1);
 
-    // Minimum Intensity Projection (MinIP)
-    // Finds the minimum intensity of all pixels with a given (x,y) in the z-direction
+    /**
+     * @brief Compute a minimum-intensity projection.
+     * @param volume Source volume.
+     * @param z_min First slice in the inclusive 1-based range.
+     * @param z_max Last slice in the inclusive 1-based range, or -1 for the end.
+     * @return Projected 2-D image.
+     */
     static Image applyMinIP(const Volume& volume, int z_min = 1, int z_max = -1);
 
-    // Mean Intensity Projection (MeanIP)
-    // Finds the average (mean) intensity of all pixels with a given (x,y) in the z-direction
+    /**
+     * @brief Compute a mean-intensity projection.
+     * @param volume Source volume.
+     * @param z_min First slice in the inclusive 1-based range.
+     * @param z_max Last slice in the inclusive 1-based range, or -1 for the end.
+     * @return Projected 2-D image.
+     */
     static Image applyMeanIP(const Volume& volume, int z_min = 1, int z_max = -1);
 
-    // Median Intensity Projection (MedianIP)
-    // Finds the median intensity; requires custom median-finding algorithm
+    /**
+     * @brief Compute a median-intensity projection.
+     * @param volume Source volume.
+     * @param z_min First slice in the inclusive 1-based range.
+     * @param z_max Last slice in the inclusive 1-based range, or -1 for the end.
+     * @return Projected 2-D image.
+     */
     static Image applyMedianIP(const Volume& volume, int z_min = 1, int z_max = -1);
 };
 

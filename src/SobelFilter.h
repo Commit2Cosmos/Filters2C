@@ -12,7 +12,14 @@
  */
 class SobelFilter : public ConvFilter {
 public:
+    /**
+     * @brief Construct a Sobel edge detector.
+     */
     SobelFilter();
+    /**
+     * @brief Apply Sobel edge detection to an image.
+     * @param image Image to modify.
+     */
     void apply(Image& image) override;
 };
 
