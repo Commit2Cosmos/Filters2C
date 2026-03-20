@@ -13,13 +13,6 @@ For 2D images, the program can improve contrast, blur noise, detect edges, sharp
 
 The project is structured as a reusable C++ library plus a command-line executable. Most of the image and volume operations are implemented as separate classes, which keeps the code modular and makes individual features easier to test.
 
-## Preview
-
-
-
-
-
-
 
 ## Features
 
