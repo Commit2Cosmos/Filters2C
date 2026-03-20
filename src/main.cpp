@@ -4,6 +4,7 @@
 #include <optional>
 #include <algorithm>
 #include <filesystem>
+#include <stdexcept>
 
 #include "Image.h"
 #include "Volume.h"
@@ -129,9 +130,24 @@ int main(int argc, char* argv[]) {
             std::exit(1);
         }
         Volume vol;
-        vol.loadFromFiles(files);
+        if (!vol.loadFromFiles(files)) {
+            std::cerr << "Error: failed to load volume from '" << volumeBase << "'\n";
+            std::exit(1);
+        }
 
-        // TODO: add blurring for Volumes
+        if (volumeBlur) {
+            if (volumeBlur->type == "Gaussian") {
+                GaussianBlurFilter f(volumeBlur->size, volumeBlur->stdev);
+                f.apply(vol);
+            } else if (volumeBlur->type == "Median") {
+                MedianBlurFilter f(volumeBlur->size);
+                f.apply(vol);
+            } else {
+                std::cerr << "Error: unknown volume blur type '" << volumeBlur->type << "'\n";
+                std::exit(1);
+            }
+        }
+
         return vol;
     };
 
@@ -171,7 +187,7 @@ int main(int argc, char* argv[]) {
             std::string val = args[++i];
             if (!isVolumeMode) {
                 ensureLoaded();
-                Brightness f(std::stoi(val));
+                Brightness f(val);
                 f.apply(img);
             }
 
@@ -256,13 +272,12 @@ int main(int argc, char* argv[]) {
 
         // ── Threshold ──────────────────────────────────────────────────────
         } else if (a == "-t" || a == "--threshold") {
-            // TODO: handle colorspace if needed
             int         value      = std::stoi(args[++i]);
             std::string colorspace = "HSV";
             if (nextIsColorspace(args, i + 1)) colorspace = args[++i];
             if (!isVolumeMode) {
                 ensureLoaded();
-                Threshold f;
+                Threshold f(value, colorspace);
                 f.apply(img);
             }
 
