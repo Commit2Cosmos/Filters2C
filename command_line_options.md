@@ -57,14 +57,14 @@ Note that it is necessary to specify one of these processing options (Slice or P
 
 ## Example Commands
 
-- Brightness: `./APImageFilters -i input.png -b 100 output.png`
-- Greyscale: `./APImageFilters -i input.png -g output.png`
-- Histogram Equalisation: `./APImageFilters -i input.png -h HSV output.png`
-- Blur (Gaussian): `./APImageFilters -i input.png -r Gaussian 5 2.0 output.png`
-- Edge Detection (Sobel): `./APImageFilters -i input.png --edge Sobel output.png`
-- Laplacian Sharpening: `./APImageFilters -i input.png --sharpen output.png`
-- Emboss: `./APImageFilters -i input.png --emboss 2.5 NE HSV output.png`
-- Salt and Pepper Noise: `./APImageFilters -i input.png --saltpepper 5 output.png`
-- Threshold: `./APImageFilters -i input.png --threshold 128 HSV output.png`
-- Volume Slice (XZ): `./APImageFilters -d volume -s XZ 16 output.png`
-- Volume Projection (MIP): `./APImageFilters -d volume -p MIP output.png`
+- Brightness: `./APImageFiltersKruskal -i input.png -b 100 output.png`
+- Greyscale: `./APImageFiltersKruskal -i input.png -g output.png`
+- Histogram Equalisation: `./APImageFiltersKruskal -i input.png -h HSV output.png`
+- Blur (Gaussian): `./APImageFiltersKruskal -i input.png -r Gaussian 5 2.0 output.png`
+- Edge Detection (Sobel): `./APImageFiltersKruskal -i input.png --edge Sobel output.png`
+- Laplacian Sharpening: `./APImageFiltersKruskal -i input.png --sharpen output.png`
+- Emboss: `./APImageFiltersKruskal -i input.png --emboss 2.5 NE HSV output.png`
+- Salt and Pepper Noise: `./APImageFiltersKruskal -i input.png --saltpepper 5 output.png`
+- Threshold: `./APImageFiltersKruskal -i input.png --threshold 128 HSV output.png`
+- Volume Slice (XZ): `./APImageFiltersKruskal -d volume -s XZ 16 output.png`
+- Volume Projection (MIP): `./APImageFiltersKruskal -d volume -p MIP output.png`

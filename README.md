@@ -1,4 +1,4 @@
-# APImageFilters
+# APImageFiltersKruskal
 Advanced Programming Image Filters Project
 
 ## Installation instructions
@@ -7,7 +7,7 @@ First, clone the repository:
 
 ```bash
 git clone XXX
-cd APImageFilters
+cd APImageFiltersKruskal
 ```
 
 Install cmake and a C++ compiler if you don't already have them. On MacOS, you can install them with Homebrew. This should get you the `gcc v15` compilers on MacOS (March 2026):
