@@ -104,11 +104,11 @@ Purpose: these filters change pixel intensity or contrast directly and are usefu
 
 Suggested showcase:
 
-![Basic image filters result](docs/effects/basic_filters.png)
+![Basic image filters result](docs/simplefilter.png)
 
 Caption: place a side-by-side or collage image here to show contrast improvement, grayscale conversion, thresholding, or noise injection on the same source image.
 
-### Blur and denoising filters
+### Blur filters
 
 Purpose: these filters reduce noise and smooth local variation before later analysis steps such as edge detection or thresholding.
 
@@ -118,7 +118,7 @@ Purpose: these filters reduce noise and smooth local variation before later anal
 
 Suggested showcase:
 
-![Blur and denoising result](docs/effects/blur_filters.png)
+![Blur result](docs/Blurfilter.png)
 
 Caption: use one figure comparing the original image with box blur, Gaussian blur, and median blur so the differences in smoothing behaviour are immediately visible.
 
@@ -131,7 +131,7 @@ Purpose: these filters emphasise local structure and visual texture using convol
 
 Suggested showcase:
 
-![Enhancement filters result](docs/effects/enhancement_filters.png)
+![Enhancement filters result](docs/convfilter.png)
 
 Caption: show sharpening and embossing on the same input image so readers can compare detail enhancement against stylised surface relief.
 
@@ -146,7 +146,7 @@ Purpose: these filters estimate intensity gradients and highlight boundaries, co
 
 Suggested showcase:
 
-![Edge detection result](docs/effects/edge_filters.png)
+![Edge detection result](docs/edgefilter.png)
 
 Caption: this section works best with a four-panel comparison using the same source image, one panel per edge detector.
 
@@ -371,7 +371,7 @@ ctest --output-on-failure
 
 ## Notes
 
-- The project is built with `CMake` and `C++20`.
+- The project is built with `CMake` and `C++17`.
 - Volume input should be provided as a common filename prefix, for example `Scans/TestVolume/vol`.
 - The program collects matching files in the target directory and processes them in sorted order.
 - In volume mode, you must specify either `--slice` or `--projection`.
