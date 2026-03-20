@@ -1,6 +1,6 @@
 # APImageFiltersKruskal
 
-A C++20 image and volume processing project for the Advanced Programming course. The application supports 2D image filters, 3D volume loading, slice extraction, and intensity projection from stacks of scan images.
+A C++17 image and volume processing project for the Advanced Programming course. The application supports 2D image filters, 3D volume loading, slice extraction, and intensity projection from stacks of scan images.
 
 ## Project Overview
 
