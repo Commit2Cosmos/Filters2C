@@ -37,3 +37,6 @@ build/
 # Scans directories (and their contents)
 Scans/fracture/
 Scans/confuciusornis/
+
+# VSCode
+.vscode

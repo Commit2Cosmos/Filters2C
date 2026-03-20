@@ -1,33 +1,38 @@
 cmake_minimum_required(VERSION 3.21)
+project(APImageFiltersKruskal VERSION 1.0)
 
-# Project name and version
-project(APImageFilters VERSION 1.0)
-
-# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Include directories
-include_directories(${CMAKE_SOURCE_DIR}/src)
-
-# Define the header files location
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/src/*.h)
 
-# Add the executable
-# Note, you will need to uncomment different files here as you start to add them to your project
-add_executable(APImageFilters
-    src/main.cpp
-    #src/Filter.cpp
-    #src/Image.cpp
-    #src/Projection.cpp
-    #src/Slice.cpp
-    #src/Volume.cpp
+add_library(APFiltersLib STATIC
+    src/BoxBlurFilter.cpp
+    src/Brightness.cpp
+    src/ConvFilter.cpp
+    src/EmbossFilter.cpp
+    src/GaussianBlurFilter.cpp
+    src/GrayScale.cpp
+    src/HistogramEqualisation.cpp
+    src/Image.cpp
+    src/MedianBlurFilter.cpp
+    src/PrewittFilter.cpp
+    src/Projection.cpp
+    src/RobertsCrossFilter.cpp
+    src/SaltAndPepper.cpp
+    src/ScharrFilter.cpp
+    src/SharpenFilter.cpp
+    src/Slice.cpp
+    src/SobelFilter.cpp
+    src/Threshold.cpp
+    src/Volume.cpp
     ${HEADER_FILES}
 )
+target_include_directories(APFiltersLib PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
-# Enable testing
-include(CTest)
+add_executable(APImageFiltersKruskal src/main.cpp)
+target_link_libraries(APImageFiltersKruskal PRIVATE APFiltersLib)
+
 enable_testing()
-
-# Include the tests
-include(${CMAKE_SOURCE_DIR}/cmdtests.cmake)
+add_subdirectory(tests)
+include(${CMAKE_SOURCE_DIR}/tests/cmdtests.cmake)

@@ -1,8 +1,22 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #include "Image.h"
 #include <iostream>
 #include <algorithm> // For std::clamp
 #include <cmath>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 // Constructors
@@ -15,7 +29,6 @@ Image::Image(int w, int h, int c) : width(w), height(h), channels(c) {
 Image::Image(const std::string& filepath) {
     load(filepath);
 }
-
 
 // File I/O
 bool Image::load(const std::string& filepath) {
@@ -36,25 +49,6 @@ bool Image::save(const std::string& filepath) const {
     int stride = width * channels;
     int success = stbi_write_png(filepath.c_str(), width, height, channels, data.data(), stride);
     return success != 0;
-}
-
-
-// Pixel Access
-unsigned char Image::getPixel(int x, int y, int channel) const {
-    // if out of bounds clamp to edge pixel
-    x = std::clamp(x, 0, width - 1);  
-    y = std::clamp(y, 0, height - 1);
-    
-    int index = (y * width + x) * channels + channel;
-    return data[index];
-}
-
-void Image::setPixel(int x, int y, int channel, unsigned char value) {
-    if (x < 0 || x >= width || y < 0 || y >= height || channel < 0 || channel >= channels) {
-        return; // Ignore out-of-bounds 
-    }
-    int index = (y * width + x) * channels + channel;
-    data[index] = value;
 }
 
 

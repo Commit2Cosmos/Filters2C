@@ -1,3 +1,14 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #ifndef FILTER_H
 #define FILTER_H
 
@@ -11,19 +22,23 @@ class Volume;
  */
 class Filter {
 public:
-    // Virtual destructor ensures derived class destructors are called correctly
+    /// Virtual destructor for safe polymorphic cleanup.
     virtual ~Filter() = default;
 
-    // Pure virtual function makes this an abstract class.
-    // Every specific filter MUST implement this method for 2D Images.
+    /**
+     * @brief Apply the filter to a 2-D image.
+     * @param image Image to modify.
+     */
     virtual void apply(Image& image) = 0;
 
-    // Overloaded virtual function for 3D Volumes.
-    // We provide a default implementation that does nothing (or could throw an error)
-    // so that 2D-only filters don't are not forced to implement 3D logic.
+    /**
+     * @brief Apply the filter to a 3-D volume.
+     * @param volume Volume to modify.
+     *
+     * The base implementation does nothing so image-only filters are not forced
+     * to implement 3-D behaviour.
+     */
     virtual void apply(Volume& volume) {
-        // Default implementation: do nothing or throw an exception.
-        // 3D filters (like 3D Gaussian or 3D Median) will override this.
     }
 };
 

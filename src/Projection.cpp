@@ -1,9 +1,19 @@
+/*
+Kruskal
+Xinying Yang ada-xy325
+Oliver Whitehead ada-ow25
+Anton Belov ada-ab2125 (ada-85a5785b61)
+Hao Liu ada-hl4425
+Jiayu Wu ada-jw1125
+Yuhang Dai ada-yd1125
+Julia Williams ada-jjw25
+*/
+
 #include "Projection.h"
 #include <iostream>
 #include <algorithm> // Only for std::clamp (allowed) and std::swap
 
-// Local Helper Functions
-namespace helper{
+namespace {
 
     // Helper to validate and convert 1-based user indices to 0-based volume indices
     void getZBounds(int depth, int z_min, int z_max, int& out_start, int& out_end) {
@@ -22,78 +32,36 @@ namespace helper{
         if (out_start > out_end) std::swap(out_start, out_end);
     }
 
-
-    // CUSTOM MEDIAN ALGORITHM: Quickselect
-    // O(N) average case for finding a median.
-    // https://www.youtube.com/watch?v=FKvzjLWqoDw
-    
-    // Rearranges the array such that elements <= pivot are on the left,
-    // and elements > pivot are on the right. Returns the final index of the pivot.
-    int partition(std::vector<unsigned char>& arr, int left, int right) {
-        // Choose rightmost element as the pivot value
-        unsigned char pivot = arr[right];
-        
-        // 'i' tracks boundary where the next smaller-than-pivot element should go
-        int i = left;
-        
-        for (int j = left; j < right; ++j) {
-            // If current element smaller than or equal to pivot
-            if (arr[j] <= pivot) {
-                // Swap it into the "left" section of partition
-                std::swap(arr[i], arr[j]);
-                i++; // Move boundary forward
-            }
-        }
-        
-        // Place the pivot in final sorted position (between two partitions)
-        std::swap(arr[i], arr[right]);
-        return i; // Return index where the pivot settled
-    }
-
-
-    // Recursive function to find the element that would be at index 'k' if the array were sorted.
-    // For median, 'k' typically arr.size() / 2.
-    unsigned char quickSelectMedian(std::vector<unsigned char>& arr, int left, int right, int k) {
-        // Base case: If the range contains only one element, we've found our target
-        if (left == right) return arr[left];
-        
-        // Partition array and get position of the pivot
-        int pivotIndex = partition(arr, left, right);
-        
-        // If pivot landed exactly on index 'k', we've found the k-th smallest element
-        if (k == pivotIndex) {
-            return arr[k];
-        } 
-        // If 'k' is less than the pivot index, the target is in the left partition
-        else if (k < pivotIndex) {
-            return helper::quickSelectMedian(arr, left, pivotIndex - 1, k);
-        } 
-        // If 'k' is greater than the pivot index, the target is in the right partition
-        else {
-            return helper::quickSelectMedian(arr, pivotIndex + 1, right, k);
-        }
-    }
-}
+} // namespace
 
 // --- Maximum Intensity Projection ---
 Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
     int channels = volume.getChannels();
     Image result(width, height, channels);
 
+    // pre-calculate the size of one full slice jump
+    int slice_stride = width * height * channels;
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
                 unsigned char max_val = 0;
                 
-                // Find maximum intensity in the z-direction
+                // Calculate starting 1D index once per Z-column
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
+                // Fast memory striding through the Z-direction
                 for (int z = start_z; z <= end_z; ++z) {
-                    unsigned char val = volume.getVoxel(x, y, z, c);
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
                     if (val > max_val) max_val = val;
+                    
+                    current_index += slice_stride; // jump to next slice
                 }
                 result.setPixel(x, y, c, max_val);
             }
@@ -105,22 +73,28 @@ Image Projection::applyMaxIP(const Volume& volume, int z_min, int z_max) {
 // --- Minimum Intensity Projection ---
 Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
     int channels = volume.getChannels();
     Image result(width, height, channels);
 
+    int slice_stride = width * height * channels;
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                unsigned char min_val = 255; // Start at max possible value
+                unsigned char min_val = 255; 
                 
-                // Find minimum intensity in the z-direction
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    unsigned char val = volume.getVoxel(x, y, z, c);
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
                     if (val < min_val) min_val = val;
+                    
+                    current_index += slice_stride; 
                 }
                 result.setPixel(x, y, c, min_val);
             }
@@ -132,7 +106,7 @@ Image Projection::applyMinIP(const Volume& volume, int z_min, int z_max) {
 // --- Mean Intensity Projection ---
 Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -140,15 +114,19 @@ Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
     Image result(width, height, channels);
 
     int num_slices = (end_z - start_z) + 1;
+    int slice_stride = width * height * channels;
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
-                unsigned int sum = 0; // Use a larger type to prevent overflow during addition
+                unsigned int sum = 0; 
                 
-                // Find average intensity in the z-direction
+                int base_index = (y * width * channels) + (x * channels) + c;
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    sum += volume.getVoxel(x, y, z, c);
+                    sum += volume.getVoxelRaw1D(current_index);
+                    current_index += slice_stride;
                 }
                 
                 unsigned char avg_val = static_cast<unsigned char>(sum / num_slices);
@@ -162,7 +140,7 @@ Image Projection::applyMeanIP(const Volume& volume, int z_min, int z_max) {
 // --- Median Intensity Projection ---
 Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
     int start_z, end_z;
-    helper::getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
+    getZBounds(volume.getDepth(), z_min, z_max, start_z, end_z);
 
     int width = volume.getWidth();
     int height = volume.getHeight();
@@ -170,22 +148,41 @@ Image Projection::applyMedianIP(const Volume& volume, int z_min, int z_max) {
     Image result(width, height, channels);
 
     int num_slices = (end_z - start_z) + 1;
-    int median_index = num_slices / 2; 
-
-    // Pre-allocate vector to hold values for sorting 
-    std::vector<unsigned char> values(num_slices);
+    int target_median_count = num_slices / 2; 
+    int slice_stride = width * height * channels; 
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             for (int c = 0; c < channels; ++c) {
                 
-                // Collect all values in the z-direction
+                int histogram[256] = {0}; 
+                
+                // Calculate the base 1D index for (x, y, z=0, c) exactly ONCE
+                int base_index = (y * width * channels) + (x * channels) + c;
+                
+                // Calculate the starting index based on z_min
+                int current_index = base_index + (start_z * slice_stride);
+                
                 for (int z = start_z; z <= end_z; ++z) {
-                    values[z - start_z] = volume.getVoxel(x, y, z, c);
+                    // get raw value, ignoring clamps as we are inside bounds
+                    unsigned char val = volume.getVoxelRaw1D(current_index);
+                    histogram[val]++;
+                    
+                    // jump to the same pixel in the next slice
+                    current_index += slice_stride; 
                 }
                 
-                // Use custom Quickselect algorithm to find the median
-                unsigned char median_val = helper::quickSelectMedian(values, 0, num_slices - 1, median_index);
+                // find the median by accumulating the counts
+                int running_sum = 0;
+                unsigned char median_val = 0;
+                
+                for (int i = 0; i < 256; ++i) {
+                    running_sum += histogram[i];
+                    if (running_sum > target_median_count) {
+                        median_val = static_cast<unsigned char>(i);
+                        break; 
+                    }
+                }
                 
                 result.setPixel(x, y, c, median_val);
             }
