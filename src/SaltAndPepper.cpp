@@ -19,7 +19,7 @@ Julia Williams ada-jjw25
  * @param noiseRatio Proportion of pixels to be corrupted by noise (range [0,1]).
  *                   A value of 0 means no noise, while 1 means all pixels are affected.
  */
-SaltAndPepper::SaltAndPepper(double noiseRatio)
+SaltAndPepper::SaltAndPepper(float noiseRatio)
     : noiseRatio(noiseRatio)
 {
 }

@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     std::string volumeExt      = "png";
 
     // Volume blur is stored and applied lazily when the volume is loaded.
-    struct BlurSpec { std::string type; int size; double stdev = 1.0; };
+    struct BlurSpec { std::string type; int size; float stdev = 1.0; };
     std::optional<BlurSpec> volumeBlur;
 
     Image img;
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
             } else {
                 ensureLoaded();
                 if (type == "Gaussian") {
-                    double stdev = std::stod(args[++i]);
+                    float stdev = std::stod(args[++i]);
                     GaussianBlurFilter f(size, stdev); f.apply(img);
                 } else if (type == "Box") {
                     BoxBlurFilter f(size); f.apply(img);
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
 
         // ── Salt and Pepper ────────────────────────────────────────────────
         } else if (a == "-n" || a == "--saltpepper") {
-            double amount = std::stod(args[++i]);
+            float amount = std::stod(args[++i]);
             if (!isVolumeMode) {
                 ensureLoaded();
                 SaltAndPepper f(amount);

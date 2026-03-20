@@ -30,7 +30,7 @@ private:
     /// Width of the Gaussian kernel. Must be odd and greater than 1.
     int kernelSize;
     /// Standard deviation controlling the spread of the Gaussian.
-    double sigma;
+    float sigma;
 
     /**
      * @brief Check whether the kernel size is usable.
@@ -44,7 +44,7 @@ private:
      * @param sigma Standard deviation of the Gaussian.
      * @return Normalised kernel coefficients.
      */
-    std::vector<double> createGaussianKernel1D(int kernelSize, double sigma) const;
+    std::vector<float> createGaussianKernel1D(int kernelSize, float sigma) const;
 
 public:
     /**
@@ -52,7 +52,7 @@ public:
      * @param kernelSize Width of the 1-D Gaussian kernel.
      * @param sigma Standard deviation of the Gaussian.
      */
-    GaussianBlurFilter(int kernelSize, double sigma);
+    GaussianBlurFilter(int kernelSize, float sigma);
 
     /**
      * @brief Apply Gaussian blur to a 2-D image.

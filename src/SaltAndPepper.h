@@ -26,7 +26,7 @@ public:
      * @brief Construct a salt-and-pepper noise filter.
      * @param noiseRatio Fraction of pixels to corrupt, typically in [0, 1].
      */
-    explicit SaltAndPepper(double noiseRatio);
+    explicit SaltAndPepper(float noiseRatio);
 
     /**
      * @brief Apply salt-and-pepper noise in-place.
@@ -36,7 +36,7 @@ public:
 
 private:
     /// Fraction of pixels selected for corruption.
-    double noiseRatio;
+    float noiseRatio;
 };
 
 #endif
