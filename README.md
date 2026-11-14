@@ -1,6 +1,11 @@
-# APImageFiltersKruskal
+# Filters2C: C++ Image & Volume Processing Toolkit
 
-A C++17 image and volume processing project for the Advanced Programming course. The application supports 2D image filters, 3D volume loading, slice extraction, and intensity projection from stacks of scan images.
+A C++17 command-line toolkit and library for 2D image filtering and 3D volume analysis, written from scratch with no image-processing dependencies (only `stb_image` for file I/O). It chains contrast, blur, edge-detection, sharpening and thresholding filters on images. It also loads stacks of CT-style scan slices as a voxel volume, then extracts XZ/YZ slices or computes intensity projections (MIP, MinIP, mean and median AIP). The build uses CMake, the tests run under CTest (50 unit and CLI tests), and the API is documented with Doxygen.
+
+<p align="center">
+  <img src="docs/hero_filters.jpg" alt="Original, histogram-equalised, noisy, median-filtered, Sobel and embossed versions of a Visible Human anatomy slice" width="100%">
+  <br><em>Filters applied to a Visible Human anatomy slice with the CLI. The median blur removes the salt-and-pepper noise shown in the panel above it.</em>
+</p>
 
 ## Project Overview
 
@@ -156,19 +161,14 @@ These modules convert a full 3D scan volume into interpretable 2D outputs for in
 - `CMakeLists.txt`: defines the reusable library, executable, and test targets
 - `tests/`: contains unit tests and command-line behaviour tests for validating the implementation
 
-Recommended image asset locations:
+### Performance
 
-- `docs/effects/basic_filters.png`
-- `docs/effects/blur_filters.png`
-- `docs/effects/enhancement_filters.png`
-- `docs/effects/edge_filters.png`
-- `docs/effects/volume_processing.png`
+Runtime and memory of each 2D filter against input size (up to ~2.3 MP). Every filter scales linearly with pixel count; median blur (sliding-histogram implementation) is the most expensive.
 
-### Performance plots
-
-![Time](docs/runtime_2d_filters.png)
-
-![Memory](docs/memory_2d_filters.png)
+<p align="center">
+  <img src="docs/runtime_2d_filters.png" alt="Runtime of 2D filters vs image size" width="49%">
+  <img src="docs/memory_2d_filters.png" alt="Memory use of 2D filters vs image size" width="49%">
+</p>
 
 ## Processing Flow
 
@@ -256,8 +256,8 @@ For the full option reference, parameter rules, and more examples, see [command_
 First clone the repository:
 
 ```bash
-git clone https://github.com/ese-ada-lovelace-2025/advanced-programming-group-kruskal.git
-cd advanced-programming-group-kruskal
+git clone https://github.com/Commit2Cosmos/Filters2C.git
+cd Filters2C
 ```
 
 Install CMake and a C++ compiler if needed.
@@ -283,7 +283,7 @@ cmake ..
 cmake --build .
 ```
 
-After building, the executable will be:
+After building, the executable will be (the binary keeps the original project name):
 
 ```bash
 build/APImageFiltersKruskal
@@ -360,6 +360,10 @@ ctest --output-on-failure
 - Volume input should be provided as a common filename prefix, for example `Scans/TestVolume/vol`.
 - The program collects matching files in the target directory and processes them in sorted order.
 - In volume mode, you must specify either `--slice` or `--projection`.
+
+## Credits
+
+Built by **Team Kruskal** (7 members) for the Advanced Programming group project at Imperial College London, Jan–Feb 2026. The design rationale, algorithm choices and benchmark discussion are in the [project report](Kruskal_Report.pdf). See [references.md](references.md) for sources.
 
 ## License
 
